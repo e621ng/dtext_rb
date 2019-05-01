@@ -7,10 +7,12 @@ class DTextTest < Minitest::Test
   end
 
   def assert_parse(expected, input, **options)
+
     if expected.nil?
-      assert_nil(DTextRagel.parse(input, **options))
+      assert_nil(str_part = DTextRagel.parse(input, **options))
     else
-      assert_equal(expected, DTextRagel.parse(input, **options))
+      str_part = DTextRagel.parse(input, **options)[0]
+      assert_equal(expected, str_part)
     end
   end
 
@@ -18,6 +20,14 @@ class DTextTest < Minitest::Test
     assert_parse('<p><a class="dtext-link dtext-id-link dtext-post-id-link" href="http://danbooru.donmai.us/posts/1234">post #1234</a></p>', "post #1234", base_url: "http://danbooru.donmai.us")
     assert_parse('<p><a class="dtext-link" href="http://danbooru.donmai.us/posts">posts</a></p>', '"posts":/posts', base_url: "http://danbooru.donmai.us")
     assert_parse('<p><a rel="nofollow" href="http://danbooru.donmai.us/users?name=evazion">@evazion</a></p>', "@evazion", base_url: "http://danbooru.donmai.us")
+  end
+
+  def test_thumbnails
+    parsed = DTextRagel.parse("thumb #123")
+    assert_equal(parsed[1], [123])
+    assert_equal(parsed[0], "<p><a class=\"dtext-link dtext-id-link dtext-post-id-link thumb-placeholder-link\" data-id=\"123\" href=\"/posts/123\">post #123</a></p>")
+    parsed = DTextRagel.parse("thumb #123 "*10, max_thumbs: 5)
+    assert_equal(parsed[1], [123]*5)
   end
 
   def test_args
@@ -32,7 +42,7 @@ class DTextTest < Minitest::Test
     assert_parse('<p>this is not @.@ @_@ <a rel="nofollow" href="/users?name=bob">@bob</a></p>', "this is not @.@ @_@ @bob")
     assert_parse('<p>this is an email@address.com and should not trigger</p>', "this is an email@address.com and should not trigger")
     assert_parse('<p>multiple <a rel="nofollow" href="/users?name=bob">@bob</a> <a rel="nofollow" href="/users?name=anna">@anna</a></p>', "multiple @bob @anna")
-    assert_equal('<p>hi @bob</p>', DTextRagel.parse("hi @bob", :disable_mentions => true))
+    assert_equal('<p>hi @bob</p>', DTextRagel.parse("hi @bob", :disable_mentions => true)[0])
   end
 
   def test_nested_nonmention
@@ -364,16 +374,16 @@ class DTextTest < Minitest::Test
   end
 
   def test_inline_mode
-    assert_equal("hello", DTextRagel.parse_inline("hello").strip)
+    assert_equal("hello", DTextRagel.parse_inline("hello")[0].strip)
   end
 
   def test_strip
-    assert_equal("hello z wo rld ", DTextRagel.parse_strip("h[b]e[/b]llo[quote]z[/quote]wo[expand]rld[/expand]"))
-    assert_equal("this is a header a paragraph this is a list ", DTextRagel.parse_strip("h1. this is a header\n\na paragraph\n\n* this\n* is\n* a list\n"))
-    assert_equal("one line after the other ", DTextRagel.parse_strip("one\nline\nafter\nthe\nother"))
-    assert_equal("one http://google.com this is a link after ", DTextRagel.parse_strip("one \"this is a link\":http://google.com after\n"))
-    assert_equal("one http://google.com this is a link after ", DTextRagel.parse_strip("one \"this is a link\":[http://google.com] after\n"))
-    assert_equal("one wiki after ", DTextRagel.parse_strip("one [[wiki]] after\n"))
+    assert_equal("hello z wo rld ", DTextRagel.parse_strip("h[b]e[/b]llo[quote]z[/quote]wo[expand]rld[/expand]")[0])
+    assert_equal("this is a header a paragraph this is a list ", DTextRagel.parse_strip("h1. this is a header\n\na paragraph\n\n* this\n* is\n* a list\n")[0])
+    assert_equal("one line after the other ", DTextRagel.parse_strip("one\nline\nafter\nthe\nother")[0])
+    assert_equal("one http://google.com this is a link after ", DTextRagel.parse_strip("one \"this is a link\":http://google.com after\n")[0])
+    assert_equal("one http://google.com this is a link after ", DTextRagel.parse_strip("one \"this is a link\":[http://google.com] after\n")[0])
+    assert_equal("one wiki after ", DTextRagel.parse_strip("one [[wiki]] after\n")[0])
   end
 
   def test_old_asterisks

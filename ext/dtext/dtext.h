@@ -38,13 +38,15 @@ typedef struct StateMachine {
   GArray * stack;
   GQueue * dstack;
   GError * error;
+  GArray * posts;
   int list_nest;
   int d;
   int b;
   int quote;
+  int thumbnails_left;
 } StateMachine;
 
-StateMachine* init_machine(const char * src, size_t len, bool f_strip, bool f_inline, bool f_mentions);
+StateMachine* init_machine(const char * src, size_t len, bool f_strip, bool f_inline, bool f_mentions, long f_max_thumbs);
 void free_machine(StateMachine * sm);
 
 gboolean parse_helper(StateMachine* sm);

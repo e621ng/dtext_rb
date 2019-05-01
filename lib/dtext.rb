@@ -12,9 +12,9 @@ module DTextRagel
     parse(str, :strip => true)
   end
 
-  def self.parse(str, strip: false, inline: false, disable_mentions: false, base_url: nil)
-    html = c_parse(str, strip, inline, disable_mentions)
-    html = resolve_relative_urls(html, base_url) if base_url
+  def self.parse(str, strip: false, inline: false, disable_mentions: false, base_url: nil, max_thumbs: 25)
+    html = c_parse(str, strip, inline, disable_mentions, max_thumbs)
+    html[0] = resolve_relative_urls(html[0], base_url) if base_url
     html
   end
 

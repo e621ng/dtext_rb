@@ -126,6 +126,7 @@ id = digit+ >mark_a1 %mark_a2;
 page = digit+ >mark_b1 %mark_b2;
 
 post_id = 'post #'i id;
+thumb_id = 'thumb #'i id;
 post_appeal_id = 'appeal #'i id;
 post_flag_id = 'flag #'i id;
 note_id = 'note #'i id;
@@ -178,6 +179,24 @@ basic_inline := |*
 inline := |*
   post_id => {
     append_link(sm, "post #", "<a class=\"dtext-link dtext-id-link dtext-post-id-link\" href=\"/posts/");
+  };
+
+  thumb_id => {
+    if(sm->thumbnails_left > 0) {
+      long post_id = strtol(sm->a1, (char**)&sm->a2, 10);
+      g_array_append_val(sm->posts, post_id);
+      sm->thumbnails_left -= 1;
+      append(sm, true, "<a class=\"dtext-link dtext-id-link dtext-post-id-link thumb-placeholder-link\" data-id=\"");
+      append_segment_html_escaped(sm, sm->a1, sm->a2 - 1);
+      append(sm, true, "\" href=\"/posts/");
+      append_segment_uri_escaped(sm, sm->a1, sm->a2 -1);
+      append(sm, true, "\">");
+      append(sm, false, "post #");
+      append_segment_html_escaped(sm, sm->a1, sm->a2 - 1);
+      append(sm, true, "</a>");
+    } else {
+      append_link(sm, "post #", "<a class=\"dtext-link dtext-id-link dtext-post-id-link\" href=\"/posts/");
+    }
   };
 
   post_appeal_id => {
@@ -1230,7 +1249,7 @@ static bool print_machine(StateMachine * sm) {
 }
 */
 
-StateMachine* init_machine(const char * src, size_t len, bool f_strip, bool f_inline, bool f_mentions) {
+StateMachine* init_machine(const char * src, size_t len, bool f_strip, bool f_inline, bool f_mentions, long f_max_thumbs) {
   size_t output_length = 0;
   StateMachine* sm = (StateMachine *)g_malloc0(sizeof(StateMachine));
 
@@ -1255,6 +1274,8 @@ StateMachine* init_machine(const char * src, size_t len, bool f_strip, bool f_in
   sm->f_inline = f_inline;
   sm->f_strip = f_strip;
   sm->f_mentions = f_mentions;
+  sm->thumbnails_left = f_max_thumbs < 0 ? 5000 : f_max_thumbs; // Cap for sanity even if "unlimited"
+  sm->posts = g_array_sized_new(FALSE, TRUE, sizeof(long), 10);
   sm->stack = g_array_sized_new(FALSE, TRUE, sizeof(int), 16);
   sm->dstack = g_queue_new();
   sm->error = NULL;
@@ -1271,6 +1292,7 @@ StateMachine* init_machine(const char * src, size_t len, bool f_strip, bool f_in
 void free_machine(StateMachine * sm) {
   g_string_free(sm->output, TRUE);
   g_array_unref(sm->stack);
+  g_array_unref(sm->posts);
   g_queue_free(sm->dstack);
   g_clear_error(&sm->error);
   g_free(sm);
@@ -1282,7 +1304,7 @@ GQuark dtext_parse_error_quark() {
 
 GString* parse_basic_inline(const char* dtext, const ssize_t length, const bool f_strip) {
     GString* output = NULL;
-    StateMachine* sm = init_machine(dtext, length, f_strip, true, false);
+    StateMachine* sm = init_machine(dtext, length, f_strip, true, false, 0);
     sm->cs = dtext_en_basic_inline;
 
     if (parse_helper(sm)) {
@@ -1331,7 +1353,7 @@ static void parse_file(FILE* input, FILE* output, gboolean opt_strip, gboolean o
     }
   }
 
-  StateMachine* sm = init_machine(dtext, length, opt_strip, opt_inline, opt_mentions);
+  StateMachine* sm = init_machine(dtext, length, opt_strip, opt_inline, opt_mentions, -1);
   if (!parse_helper(sm)) {
     fprintf(stderr, "dtext parse error: %s\n", sm->error->message);
     exit(1);

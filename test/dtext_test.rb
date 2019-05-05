@@ -2,8 +2,8 @@ require 'minitest/autorun'
 require 'dtext/dtext'
 
 class DTextTest < Minitest::Test
-  def assert_parse_id_link(class_name, url, input)
-    assert_parse(%{<p><a class="dtext-link dtext-id-link #{class_name}" href="#{url}">#{input}</a></p>}, input)
+  def assert_parse_id_link(class_name, url, input, display: nil)
+    assert_parse(%{<p><a class="dtext-link dtext-id-link #{class_name}" href="#{url}">#{display ? display : input}</a></p>}, input)
   end
 
   def assert_parse(expected, input, **options)
@@ -170,7 +170,7 @@ class DTextTest < Minitest::Test
   end
 
   def test_quote_blocks_nested_expand
-    assert_parse("<blockquote><p>a</p><div class=\"expandable\"><div class=\"expandable-header\"><input type=\"button\" value=\"Show\" class=\"expandable-button\"/></div><div class=\"expandable-content\"><p>b</p></div></div><p>c</p></blockquote>", "[quote]\na\n[expand]\nb\n[/expand]\nc\n[/quote]")
+    assert_parse("<blockquote><p>a</p><div class=\"expandable\"><div class=\"expandable-header\"><input type=\"button\" value=\"Show\" class=\"expandable-button\"/></div><div class=\"expandable-content\"><p>b</p></div></div><p>c</p></blockquote>", "[quote]\na\n[section]\nb\n[/section]\nc\n[/quote]")
   end
 
   def test_code
@@ -340,7 +340,14 @@ class DTextTest < Minitest::Test
     assert_parse_id_link("dtext-tag-implication-id-link", "/tag_implications/1234", "implication #1234")
     assert_parse_id_link("dtext-favorite-group-id-link", "/favorite_groups/1234", "favgroup #1234")
     assert_parse_id_link("dtext-mod-action-id-link", "/mod_actions/1234", "mod action #1234")
-    assert_parse_id_link("dtext-user-feedback-id-link", "/user_feedbacks/1234", "feedback #1234")
+    assert_parse_id_link("dtext-user-feedback-id-link", "/user_feedbacks/1234", "record #1234")
+    assert_parse_id_link("dtext-blip-id-link", "/blips/1234", "blip #1234")
+    assert_parse_id_link("dtext-set-id-link", "/sets/1234", "set #1234")
+    assert_parse_id_link("dtext-takedown-id-link", "/takedowns/1234", "takedown #1234")
+    assert_parse_id_link("dtext-takedown-id-link", "/takedowns/1234", "take down #1234", display: "takedown #1234")
+    assert_parse_id_link("dtext-takedown-id-link", "/takedowns/1234", "takedown request #1234", display: "takedown #1234")
+    assert_parse_id_link("dtext-takedown-id-link", "/takedowns/1234", "take down request #1234", display: "takedown #1234")
+    assert_parse_id_link("dtext-ticket-id-link", "/tickets/1234", "ticket #1234")
     assert_parse_id_link("dtext-wiki-page-id-link", "/wiki_pages/1234", "wiki #1234")
 
     assert_parse_id_link("dtext-github-id-link", "https://github.com/r888888888/danbooru/issues/1234", "issue #1234")
@@ -358,19 +365,19 @@ class DTextTest < Minitest::Test
   end
 
   def test_expand
-    assert_parse("<div class=\"expandable\"><div class=\"expandable-header\"><input type=\"button\" value=\"Show\" class=\"expandable-button\"/></div><div class=\"expandable-content\"><p>hello world</p></div></div>", "[expand]hello world[/expand]")
+    assert_parse("<div class=\"expandable\"><div class=\"expandable-header\"><input type=\"button\" value=\"Show\" class=\"expandable-button\"/></div><div class=\"expandable-content\"><p>hello world</p></div></div>", "[section]hello world[/section]")
   end
 
   def test_aliased_expand
-    assert_parse("<div class=\"expandable\"><div class=\"expandable-header\"><span>hello</span><input type=\"button\" value=\"Show\" class=\"expandable-button\"/></div><div class=\"expandable-content\"><p>blah blah</p></div></div>", "[expand=hello]blah blah[/expand]")
+    assert_parse("<div class=\"expandable\"><div class=\"expandable-header\"><span>hello</span><input type=\"button\" value=\"Show\" class=\"expandable-button\"/></div><div class=\"expandable-content\"><p>blah blah</p></div></div>", "[section=hello]blah blah[/section]")
   end
 
   def test_expand_with_nested_code
-    assert_parse("<div class=\"expandable\"><div class=\"expandable-header\"><input type=\"button\" value=\"Show\" class=\"expandable-button\"/></div><div class=\"expandable-content\"><pre>hello\n</pre></div></div>", "[expand]\n[code]\nhello\n[/code]\n[/expand]")
+    assert_parse("<div class=\"expandable\"><div class=\"expandable-header\"><input type=\"button\" value=\"Show\" class=\"expandable-button\"/></div><div class=\"expandable-content\"><pre>hello\n</pre></div></div>", "[section]\n[code]\nhello\n[/code]\n[/section]")
   end
 
   def test_expand_with_nested_list
-    assert_parse("<div class=\"expandable\"><div class=\"expandable-header\"><input type=\"button\" value=\"Show\" class=\"expandable-button\"/></div><div class=\"expandable-content\"><ul><li>a</li><li>b<br></li></ul></div></div><p>c</p>", "[expand]\n* a\n* b\n[/expand]\nc")
+    assert_parse("<div class=\"expandable\"><div class=\"expandable-header\"><input type=\"button\" value=\"Show\" class=\"expandable-button\"/></div><div class=\"expandable-content\"><ul><li>a</li><li>b<br></li></ul></div></div><p>c</p>", "[section]\n* a\n* b\n[/section]\nc")
   end
 
   def test_inline_mode
@@ -378,7 +385,7 @@ class DTextTest < Minitest::Test
   end
 
   def test_strip
-    assert_equal("hello z wo rld ", DTextRagel.parse_strip("h[b]e[/b]llo[quote]z[/quote]wo[expand]rld[/expand]")[0])
+    assert_equal("hello z wo rld ", DTextRagel.parse_strip("h[b]e[/b]llo[quote]z[/quote]wo[section]rld[/section]")[0])
     assert_equal("this is a header a paragraph this is a list ", DTextRagel.parse_strip("h1. this is a header\n\na paragraph\n\n* this\n* is\n* a list\n")[0])
     assert_equal("one line after the other ", DTextRagel.parse_strip("one\nline\nafter\nthe\nother")[0])
     assert_equal("one http://google.com this is a link after ", DTextRagel.parse_strip("one \"this is a link\":http://google.com after\n")[0])

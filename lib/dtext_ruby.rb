@@ -131,6 +131,11 @@ class DTextRuby
     str = str.gsub(/\btopic #(\d+)\/p(\d+)/i, %{<a href="/forum_topics/\\1?page=\\2">topic #\\1/p\\2</a>})
     str = str.gsub(/\bcomment #(\d+)/i, %{<a href="/comments/\\1">comment #\\1</a>})
     str = str.gsub(/\bpool #(\d+)/i, %{<a href="/pools/\\1">pool #\\1</a>})
+    str = str.gsub(/\bset #(\d+)/i, %{<a href="/sets/\\1">set #\\1</a>})
+    str = str.gsub(/\bblip #(\d+)/i, %{<a href="/blips/\\1">blip #\\1</a>})
+    str = str.gsub(/\bticket #(\d+)/i, %{<a href="/tickets/\\1">ticket #\\1</a>})
+    str = str.gsub(/\btakedown #(\d+)/i, %{<a href="/takedowns/\\1">takedown #\\1</a>})
+    str = str.gsub(/\btake ?down request #(\d+)/i, %{<a href="/takedowns/\\1">takedown #\\1</a>})
     str = str.gsub(/\buser #(\d+)/i, %{<a href="/users/\\1">user #\\1</a>})
     str = str.gsub(/\bartist #(\d+)/i, %{<a href="/artists/\\1">artist #\\1</a>})
     str = str.gsub(/\bissue #(\d+)/i, %{<a href="https://github.com/r888888888/danbooru/issues/\\1">issue #\\1</a>})
@@ -194,8 +199,8 @@ class DTextRuby
       str.gsub!(/\s*\[spoilers?\](?!\])\s*/m, "\n\n[spoiler]\n\n")
       str.gsub!(/\s*\[\/spoilers?\]\s*/m, "\n\n[/spoiler]\n\n")
       str.gsub!(/^(h[1-6]\.\s*.+)$/, "\n\n\\1\n\n")
-      str.gsub!(/\s*\[expand(\=[^\]]*)?\](?!\])\s*/m, "\n\n[expand\\1]\n\n")
-      str.gsub!(/\s*\[\/expand\]\s*/m, "\n\n[/expand]\n\n")
+      str.gsub!(/\s*\[section(\=[^\]]*)?\](?!\])\s*/m, "\n\n[section\\1]\n\n")
+      str.gsub!(/\s*\[\/section\]\s*/m, "\n\n[/section]\n\n")
       str.gsub!(/\s*\[table\](?!\])\s*/m, "\n\n[table]\n\n")
       str.gsub!(/\s*\[\/table\]\s*/m, "\n\n[/table]\n\n")
     end
@@ -279,16 +284,16 @@ class DTextRuby
           ""
         end
 
-      when /\[expand(?:\=([^\]]*))?\](?!\])/
-        stack << "expandable"
+      when /\[section(?:\=([^\]]*))?\](?!\])/
+        stack << "sectionable"
         expand_html = '<div class="expandable"><div class="expandable-header">'
         expand_html << "<span>#{h($1)}</span>" if $1
         expand_html << '<input type="button" value="Show" class="expandable-button"/></div>'
         expand_html << '<div class="expandable-content">'
         expand_html
 
-      when /\[\/expand\](?!\])/
-        if stack.last == "expandable"
+      when /\[\/section\](?!\])/
+        if stack.last == "sectionable"
           stack.pop
           '</div></div>'
         end
@@ -313,7 +318,7 @@ class DTextRuby
         html << "</pre>"
       elsif tag == "spoiler"
         html << "</div>"
-      elsif tag == "expandable"
+      elsif tag == "sectionable"
         html << "</div></div>"
       elsif tag == "table"
         html << "</table>"

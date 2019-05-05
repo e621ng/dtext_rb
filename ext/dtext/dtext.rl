@@ -19,7 +19,7 @@ typedef enum element_t {
   INLINE_SPOILER = 2,
   BLOCK_SPOILER = 3,
   BLOCK_QUOTE = 4,
-  BLOCK_EXPAND = 5,
+  BLOCK_SECTION = 5,
   BLOCK_NODTEXT = 6,
   BLOCK_CODE = 7,
   BLOCK_TD = 8,
@@ -143,8 +143,12 @@ tag_alias_id = 'alias #'i id;
 tag_implication_id = 'implication #'i id;
 favorite_group_id = 'favgroup #'i id;
 mod_action_id = 'mod action #'i id;
-user_feedback_id = 'feedback #'i id;
+user_feedback_id = 'record #'i id;
 wiki_page_id = 'wiki #'i id;
+set_id = 'set #'i id;
+blip_id = 'blip #'i id;
+takedown_id = 'take'i ' 'i? 'down 'i 'request 'i? '#'i id;
+ticket_id = 'ticket #'i id;
 
 github_issue_id = 'issue #'i id;
 art_station_id = 'artstation #'i alnum+ >mark_a1 %mark_a2;
@@ -160,7 +164,7 @@ ws = ' ' | '\t';
 nonperiod = graph - ('.' | '"');
 header = 'h'i [123456] >mark_a1 %mark_a2 '.' ws*;
 header_with_id = 'h'i [123456] >mark_a1 %mark_a2 '#' nonperiod+ >mark_b1 %mark_b2 '.' ws*;
-aliased_expand = '[expand='i (nonbracket+ >mark_a1 %mark_a2) ']';
+aliased_section = '[section='i (nonbracket+ >mark_a1 %mark_a2) ']';
 
 list_item = '*'+ >mark_a1 %mark_a2 ws+ nonnewline+ >mark_b1 %mark_b2;
 
@@ -264,11 +268,27 @@ inline := |*
   };
 
   user_feedback_id => {
-    append_link(sm, "feedback #", "<a class=\"dtext-link dtext-id-link dtext-user-feedback-id-link\" href=\"/user_feedbacks/");
+    append_link(sm, "record #", "<a class=\"dtext-link dtext-id-link dtext-user-feedback-id-link\" href=\"/user_feedbacks/");
   };
 
   wiki_page_id => {
     append_link(sm, "wiki #", "<a class=\"dtext-link dtext-id-link dtext-wiki-page-id-link\" href=\"/wiki_pages/");
+  };
+
+  set_id => {
+    append_link(sm, "set #", "<a class=\"dtext-link dtext-id-link dtext-set-id-link\" href=\"/sets/");
+  };
+
+  blip_id => {
+    append_link(sm, "blip #", "<a class=\"dtext-link dtext-id-link dtext-blip-id-link\" href=\"/blips/");
+  };
+
+  ticket_id => {
+    append_link(sm, "ticket #", "<a class=\"dtext-link dtext-id-link dtext-ticket-id-link\" href=\"/tickets/");
+  };
+
+  takedown_id => {
+    append_link(sm, "takedown #", "<a class=\"dtext-link dtext-id-link dtext-takedown-id-link\" href=\"/takedowns/");
   };
 
   github_issue_id => {
@@ -490,17 +510,17 @@ inline := |*
     }
   };
 
-  '[expand]'i => {
-    g_debug("inline [expand]");
+  '[section]'i => {
+    g_debug("inline [section]");
     dstack_rewind(sm);
-    fexec(sm->p - 7);
+    fexec(sm->p - 8);
     fret;
   };
 
-  '[/expand]'i => {
+  '[/section]'i => {
     dstack_close_before_block(sm);
 
-    if (dstack_close_block(sm, BLOCK_EXPAND, "</div></div>")) {
+    if (dstack_close_block(sm, BLOCK_SECTION, "</div></div>")) {
       fret;
     }
   };
@@ -822,18 +842,18 @@ main := |*
     fcall code;
   };
 
-  '[expand]'i space* => {
+  '[section]'i space* => {
     dstack_close_before_block(sm);
     const char* html = "<div class=\"expandable\"><div class=\"expandable-header\">"
                        "<input type=\"button\" value=\"Show\" class=\"expandable-button\"/></div>"
                        "<div class=\"expandable-content\">";
-    dstack_open_block(sm, BLOCK_EXPAND, html);
+    dstack_open_block(sm, BLOCK_SECTION, html);
   };
 
-  aliased_expand space* => {
-    g_debug("block [expand=]");
+  aliased_section space* => {
+    g_debug("block [section=]");
     dstack_close_before_block(sm);
-    dstack_push(sm, BLOCK_EXPAND);
+    dstack_push(sm, BLOCK_SECTION);
     append_block(sm, "<div class=\"expandable\"><div class=\"expandable-header\">");
     append(sm, true, "<span>");
     append_segment_html_escaped(sm, sm->a1, sm->a2 - 1);
@@ -891,7 +911,7 @@ main := |*
     g_debug("block char: %c", fc);
     fhold;
 
-    if (g_queue_is_empty(sm->dstack) || dstack_check(sm, BLOCK_QUOTE) || dstack_check(sm, BLOCK_SPOILER) || dstack_check(sm, BLOCK_EXPAND)) {
+    if (g_queue_is_empty(sm->dstack) || dstack_check(sm, BLOCK_QUOTE) || dstack_check(sm, BLOCK_SPOILER) || dstack_check(sm, BLOCK_SECTION)) {
       dstack_open_block(sm, BLOCK_P, "<p>");
     }
 
@@ -1151,7 +1171,7 @@ static void dstack_rewind(StateMachine * sm) {
     case INLINE_SPOILER: append(sm, true, "</span>"); break;
     case BLOCK_SPOILER: append_block(sm, "</div>"); break;
     case BLOCK_QUOTE: append_block(sm, "</blockquote>"); break;
-    case BLOCK_EXPAND: append_block(sm, "</div></div>"); break;
+    case BLOCK_SECTION: append_block(sm, "</div></div>"); break;
     case BLOCK_NODTEXT: append_closing_p(sm); break;
     case BLOCK_CODE: append_block(sm, "</pre>"); break;
     case BLOCK_TD: append_block(sm, "</td>"); break;

@@ -16,6 +16,11 @@ class DTextTest < Minitest::Test
     end
   end
 
+  def assert_color(prefix, suffix, color)
+    str_part = DTextRagel.parse("[color=#{color}]test[/color]", allow_color: true)[0]
+    assert_equal("#{prefix}#{color}#{suffix}", str_part)
+  end
+
   def test_relative_urls
     assert_parse('<p><a class="dtext-link dtext-id-link dtext-post-id-link" href="http://danbooru.donmai.us/posts/1234">post #1234</a></p>', "post #1234", base_url: "http://danbooru.donmai.us")
     assert_parse('<p><a class="dtext-link" href="http://danbooru.donmai.us/posts">posts</a></p>', '"posts":/posts', base_url: "http://danbooru.donmai.us")
@@ -112,6 +117,24 @@ class DTextTest < Minitest::Test
 
   def test_spoilers_nested
     assert_parse("<div class=\"spoiler\"><p>this is <span class=\"spoiler\">a nested</span> spoiler</p></div>", "[spoiler]this is [spoiler]a nested[/spoiler] spoiler[/spoiler]")
+  end
+
+  def test_sub_sup
+    assert_parse("<p><sub>test</sub></p>", "[sub]test[/sub]")
+    assert_parse("<p><sup>test</sup></p>", "[sup]test[/sup]")
+    assert_parse("<p><sub><sub>test</sub></sub></p>", "[sub][sub]test[/sub][/sub]")
+    assert_parse("<p><sup><sup>test</sup></sup></p>", "[sup][sup]test[/sup][/sup]")
+  end
+
+  def test_color
+    %w(art artist char character spec species copy copyright inv invalid meta).each do |color|
+      assert_color("<p><span class=\"dtext-color-", "\">test</span></p>", color)
+    end
+  end
+
+  def test_color_not_allowed
+    assert_parse("<p>test</p>", "[color=invalid]test[/color]")
+    assert_parse("<p>test</p>", "[color=#123456]test[/color]")
   end
 
   def test_paragraphs

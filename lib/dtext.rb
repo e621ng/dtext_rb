@@ -12,8 +12,8 @@ module DTextRagel
     parse(str, :strip => true)
   end
 
-  def self.parse(str, strip: false, inline: false, disable_mentions: false, base_url: nil, max_thumbs: 25)
-    html = c_parse(str, strip, inline, disable_mentions, max_thumbs)
+  def self.parse(str, strip: false, inline: false, disable_mentions: false, allow_color: false, base_url: nil, max_thumbs: 25)
+    html = c_parse(str, strip, inline, disable_mentions, allow_color, max_thumbs)
     html[0] = resolve_relative_urls(html[0], base_url) if base_url
     html
   end

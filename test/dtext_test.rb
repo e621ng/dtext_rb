@@ -16,9 +16,9 @@ class DTextTest < Minitest::Test
     end
   end
 
-  def assert_color(prefix, suffix, color)
+  def assert_color(prefix, color)
     str_part = DTextRagel.parse("[color=#{color}]test[/color]", allow_color: true)[0]
-    assert_equal("#{prefix}#{color}#{suffix}", str_part)
+    assert_equal("#{prefix}#{color}\">test</span></p>", str_part)
   end
 
   def test_legacy_table
@@ -160,8 +160,11 @@ test2[/ltable]
 
   def test_color
     %w(art artist char character spec species copy copyright inv invalid meta).each do |color|
-      assert_color("<p><span class=\"dtext-color-", "\">test</span></p>", color)
+      assert_color("<p><span class=\"dtext-color-", color)
     end
+    assert_color("<p><span class=\"dtext-color\" style=\"color:", "#ccc")
+    assert_color("<p><span class=\"dtext-color\" style=\"color:", "#12345")
+    assert_color("<p><span class=\"dtext-color\" style=\"color:", "#1")
   end
 
   def test_color_not_allowed

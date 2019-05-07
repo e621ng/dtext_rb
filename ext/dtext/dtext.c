@@ -6139,7 +6139,7 @@ f50:
     if(!sm->allow_color)
       { sm->cs = ( ((int *)sm->stack->data))[--( sm->top)];goto _again;}
     dstack_push(sm, INLINE_COLOR);
-    append(sm, true, "<span class=\"dtext-color\" style=\"");
+    append(sm, true, "<span class=\"dtext-color\" style=\"color:#");
     append_segment_uri_escaped(sm, sm->a1, sm->a2-1);
     append(sm, true, "\">");
   }}

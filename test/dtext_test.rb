@@ -21,6 +21,38 @@ class DTextTest < Minitest::Test
     assert_equal("#{prefix}#{color}#{suffix}", str_part)
   end
 
+  def test_legacy_table
+    assert_parse("<table class=\"striped\"><thead><tr><th>test1 \\| test2 </th><th> test2</th></tr></thead><tbody><tr><td>abc </td><td> 123</td></tr></tbody></table>", <<~END
+[ltable]
+test1 \\| test2 | test2
+abc | 123
+[/ltable]
+    END
+    )
+    assert_parse("<table class=\"striped\"><thead><tr><th>test1 </th><th> test2</th></tr></thead><tbody><tr><td>abc </td><td> 123</td></tr></tbody></table><table class=\"striped\"><thead><tr><th>test1 </th><th> test2</th></tr></thead><tbody><tr><td>abc </td><td> 123</td></tr></tbody></table>", <<~END
+[ltable]
+test1 | test2
+abc | 123
+[/ltable]
+[ltable]
+test1 | test2
+abc | 123
+[/ltable]
+    END
+    )
+    assert_parse("<table class=\"striped\"><thead><tr><th>test1</th></tr></thead><tbody></tbody></table>", <<~END
+[ltable]
+test1
+[/ltable]
+    END
+    )
+    assert_parse("<table class=\"striped\"><thead><tr><th>test1</th></tr></thead><tbody><tr><td>test2</td></tr></tbody></table>", <<~END
+[ltable]test1
+test2[/ltable]
+    END
+    )
+  end
+
   def test_relative_urls
     assert_parse('<p><a class="dtext-link dtext-id-link dtext-post-id-link" href="http://danbooru.donmai.us/posts/1234">post #1234</a></p>', "post #1234", base_url: "http://danbooru.donmai.us")
     assert_parse('<p><a class="dtext-link" href="http://danbooru.donmai.us/posts">posts</a></p>', '"posts":/posts', base_url: "http://danbooru.donmai.us")

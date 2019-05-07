@@ -19,7 +19,7 @@ typedef enum element_t {
   INLINE_SPOILER = 2,
   BLOCK_SPOILER = 3,
   BLOCK_QUOTE = 4,
-  BLOCK_EXPAND = 5,
+  BLOCK_SECTION = 5,
   BLOCK_NODTEXT = 6,
   BLOCK_CODE = 7,
   BLOCK_TD = 8,
@@ -45,6 +45,9 @@ typedef enum element_t {
   BLOCK_H6 = 28,
   INLINE_CODE = 29,
   BLOCK_STRIP = 30,
+  INLINE_SUP = 31,
+  INLINE_SUB = 32,
+  INLINE_COLOR = 33
 } element_t;
 
 %%{
@@ -122,6 +125,10 @@ post_link = '{{' noncurly+ >mark_a1 %mark_a2 '}}';
 spoilers_open = '[spoiler'i 's'i? ']';
 spoilers_close = '[/spoiler'i 's'i? ']';
 
+color_open = '[color=#'i [0-9a-fA-F]{3,6} >mark_a1 %mark_a2 ']';
+color_typed = '[color='i ('art'i('ist'i)?|'char'i('acter'i)?|'copy'i('right'i)?|'spec'i('ies'i)?|'inv'i('alid'i)?|'meta'i) >mark_a1 %mark_a2 ']';
+color_close = '[/color]'i;
+
 id = digit+ >mark_a1 %mark_a2;
 page = digit+ >mark_b1 %mark_b2;
 
@@ -143,8 +150,12 @@ tag_alias_id = 'alias #'i id;
 tag_implication_id = 'implication #'i id;
 favorite_group_id = 'favgroup #'i id;
 mod_action_id = 'mod action #'i id;
-user_feedback_id = 'feedback #'i id;
+user_feedback_id = 'record #'i id;
 wiki_page_id = 'wiki #'i id;
+set_id = 'set #'i id;
+blip_id = 'blip #'i id;
+takedown_id = 'take'i ' 'i? 'down 'i 'request 'i? '#'i id;
+ticket_id = 'ticket #'i id;
 
 github_issue_id = 'issue #'i id;
 art_station_id = 'artstation #'i alnum+ >mark_a1 %mark_a2;
@@ -160,19 +171,23 @@ ws = ' ' | '\t';
 nonperiod = graph - ('.' | '"');
 header = 'h'i [123456] >mark_a1 %mark_a2 '.' ws*;
 header_with_id = 'h'i [123456] >mark_a1 %mark_a2 '#' nonperiod+ >mark_b1 %mark_b2 '.' ws*;
-aliased_expand = '[expand='i (nonbracket+ >mark_a1 %mark_a2) ']';
+aliased_section = '[section='i (nonbracket+ >mark_a1 %mark_a2) ']';
 
 list_item = '*'+ >mark_a1 %mark_a2 ws+ nonnewline+ >mark_b1 %mark_b2;
 
 basic_inline := |*
-  '[b]'i  => { dstack_open_inline(sm,  INLINE_B, "<strong>"); };
-  '[/b]'i => { dstack_close_inline(sm, INLINE_B, "</strong>"); };
-  '[i]'i  => { dstack_open_inline(sm,  INLINE_I, "<em>"); };
-  '[/i]'i => { dstack_close_inline(sm, INLINE_I, "</em>"); };
-  '[s]'i  => { dstack_open_inline(sm,  INLINE_S, "<s>"); };
-  '[/s]'i => { dstack_close_inline(sm, INLINE_S, "</s>"); };
-  '[u]'i  => { dstack_open_inline(sm,  INLINE_U, "<u>"); };
-  '[/u]'i => { dstack_close_inline(sm, INLINE_U, "</u>"); };
+  '[b]'i    => { dstack_open_inline(sm,  INLINE_B, "<strong>"); };
+  '[/b]'i   => { dstack_close_inline(sm, INLINE_B, "</strong>"); };
+  '[i]'i    => { dstack_open_inline(sm,  INLINE_I, "<em>"); };
+  '[/i]'i   => { dstack_close_inline(sm, INLINE_I, "</em>"); };
+  '[s]'i    => { dstack_open_inline(sm,  INLINE_S, "<s>"); };
+  '[/s]'i   => { dstack_close_inline(sm, INLINE_S, "</s>"); };
+  '[u]'i    => { dstack_open_inline(sm,  INLINE_U, "<u>"); };
+  '[/u]'i   => { dstack_close_inline(sm, INLINE_U, "</u>"); };
+  '[sup]'i  => { dstack_open_inline(sm, INLINE_SUP, "<sup>"); };
+  '[/sup]'i => { dstack_close_inline(sm, INLINE_SUP, "</sup>"); };
+  '[sub]'i  => { dstack_open_inline(sm, INLINE_SUB, "<sub>"); };
+  '[/sub]'i => { dstack_close_inline(sm, INLINE_SUB, "</sub>"); };
   any => { append_c_html_escaped(sm, fc); };
 *|;
 
@@ -264,11 +279,27 @@ inline := |*
   };
 
   user_feedback_id => {
-    append_link(sm, "feedback #", "<a class=\"dtext-link dtext-id-link dtext-user-feedback-id-link\" href=\"/user_feedbacks/");
+    append_link(sm, "record #", "<a class=\"dtext-link dtext-id-link dtext-user-feedback-id-link\" href=\"/user_feedbacks/");
   };
 
   wiki_page_id => {
     append_link(sm, "wiki #", "<a class=\"dtext-link dtext-id-link dtext-wiki-page-id-link\" href=\"/wiki_pages/");
+  };
+
+  set_id => {
+    append_link(sm, "set #", "<a class=\"dtext-link dtext-id-link dtext-set-id-link\" href=\"/sets/");
+  };
+
+  blip_id => {
+    append_link(sm, "blip #", "<a class=\"dtext-link dtext-id-link dtext-blip-id-link\" href=\"/blips/");
+  };
+
+  ticket_id => {
+    append_link(sm, "ticket #", "<a class=\"dtext-link dtext-id-link dtext-ticket-id-link\" href=\"/tickets/");
+  };
+
+  takedown_id => {
+    append_link(sm, "takedown #", "<a class=\"dtext-link dtext-id-link dtext-takedown-id-link\" href=\"/takedowns/");
   };
 
   github_issue_id => {
@@ -421,6 +452,10 @@ inline := |*
   '[/s]'i => { dstack_close_inline(sm, INLINE_S, "</s>"); };
   '[u]'i  => { dstack_open_inline(sm,  INLINE_U, "<u>"); };
   '[/u]'i => { dstack_close_inline(sm, INLINE_U, "</u>"); };
+  '[sup]'i  => { dstack_open_inline(sm, INLINE_SUP, "<sup>"); };
+  '[/sup]'i => { dstack_close_inline(sm, INLINE_SUP, "</sup>"); };
+  '[sub]'i  => { dstack_open_inline(sm, INLINE_SUB, "<sub>"); };
+  '[/sub]'i => { dstack_close_inline(sm, INLINE_SUB, "</sub>"); };
 
   '[tn]'i => {
     dstack_open_inline(sm, INLINE_TN, "<span class=\"tn\">");
@@ -434,6 +469,30 @@ inline := |*
     } else if (dstack_close_block(sm, BLOCK_TN, "</p>")) {
       fret;
     }
+  };
+
+  color_open => {
+    if(!sm->allow_color)
+      fret;
+    dstack_push(sm, INLINE_COLOR);
+    append(sm, true, "<span class=\"dtext-color\" style=\"color:#");
+    append_segment_uri_escaped(sm, sm->a1, sm->a2-1);
+    append(sm, true, "\">");
+  };
+
+  color_typed => {
+    if(!sm->allow_color)
+      fret;
+    dstack_push(sm, INLINE_COLOR);
+    append(sm, true, "<span class=\"dtext-color-");
+    append_segment_uri_escaped(sm, sm->a1, sm->a2-1);
+    append(sm, true, "\">");
+  };
+
+  color_close => {
+    if(!sm->allow_color)
+      fret;
+    dstack_close_inline(sm, INLINE_COLOR, "</span>");
   };
 
   '[code]'i => {
@@ -490,17 +549,17 @@ inline := |*
     }
   };
 
-  '[expand]'i => {
-    g_debug("inline [expand]");
+  '[section]'i => {
+    g_debug("inline [section]");
     dstack_rewind(sm);
-    fexec(sm->p - 7);
+    fexec(sm->p - 8);
     fret;
   };
 
-  '[/expand]'i => {
+  '[/section]'i => {
     dstack_close_before_block(sm);
 
-    if (dstack_close_block(sm, BLOCK_EXPAND, "</div></div>")) {
+    if (dstack_close_block(sm, BLOCK_SECTION, "</div></div>")) {
       fret;
     }
   };
@@ -822,18 +881,18 @@ main := |*
     fcall code;
   };
 
-  '[expand]'i space* => {
+  '[section]'i space* => {
     dstack_close_before_block(sm);
     const char* html = "<div class=\"expandable\"><div class=\"expandable-header\">"
                        "<input type=\"button\" value=\"Show\" class=\"expandable-button\"/></div>"
                        "<div class=\"expandable-content\">";
-    dstack_open_block(sm, BLOCK_EXPAND, html);
+    dstack_open_block(sm, BLOCK_SECTION, html);
   };
 
-  aliased_expand space* => {
-    g_debug("block [expand=]");
+  aliased_section space* => {
+    g_debug("block [section=]");
     dstack_close_before_block(sm);
-    dstack_push(sm, BLOCK_EXPAND);
+    dstack_push(sm, BLOCK_SECTION);
     append_block(sm, "<div class=\"expandable\"><div class=\"expandable-header\">");
     append(sm, true, "<span>");
     append_segment_html_escaped(sm, sm->a1, sm->a2 - 1);
@@ -891,7 +950,7 @@ main := |*
     g_debug("block char: %c", fc);
     fhold;
 
-    if (g_queue_is_empty(sm->dstack) || dstack_check(sm, BLOCK_QUOTE) || dstack_check(sm, BLOCK_SPOILER) || dstack_check(sm, BLOCK_EXPAND)) {
+    if (g_queue_is_empty(sm->dstack) || dstack_check(sm, BLOCK_QUOTE) || dstack_check(sm, BLOCK_SPOILER) || dstack_check(sm, BLOCK_SECTION)) {
       dstack_open_block(sm, BLOCK_P, "<p>");
     }
 
@@ -1151,7 +1210,7 @@ static void dstack_rewind(StateMachine * sm) {
     case INLINE_SPOILER: append(sm, true, "</span>"); break;
     case BLOCK_SPOILER: append_block(sm, "</div>"); break;
     case BLOCK_QUOTE: append_block(sm, "</blockquote>"); break;
-    case BLOCK_EXPAND: append_block(sm, "</div></div>"); break;
+    case BLOCK_SECTION: append_block(sm, "</div></div>"); break;
     case BLOCK_NODTEXT: append_closing_p(sm); break;
     case BLOCK_CODE: append_block(sm, "</pre>"); break;
     case BLOCK_TD: append_block(sm, "</td>"); break;
@@ -1162,6 +1221,9 @@ static void dstack_rewind(StateMachine * sm) {
     case INLINE_I: append(sm, true, "</em>"); break;
     case INLINE_U: append(sm, true, "</u>"); break;
     case INLINE_S: append(sm, true, "</s>"); break;
+    case INLINE_SUB: append(sm, true, "</sub>"); break;
+    case INLINE_SUP: append(sm, true, "</sup>"); break;
+    case INLINE_COLOR: append(sm, true, "</span>"); break;
     case INLINE_TN: append(sm, true, "</span>"); break;
     case INLINE_CODE: append(sm, true, "</code>"); break;
 
@@ -1249,7 +1311,7 @@ static bool print_machine(StateMachine * sm) {
 }
 */
 
-StateMachine* init_machine(const char * src, size_t len, bool f_strip, bool f_inline, bool f_mentions, long f_max_thumbs) {
+StateMachine* init_machine(const char * src, size_t len, bool f_strip, bool f_inline, bool f_mentions, bool f_color, long f_max_thumbs) {
   size_t output_length = 0;
   StateMachine* sm = (StateMachine *)g_malloc0(sizeof(StateMachine));
 
@@ -1274,6 +1336,7 @@ StateMachine* init_machine(const char * src, size_t len, bool f_strip, bool f_in
   sm->f_inline = f_inline;
   sm->f_strip = f_strip;
   sm->f_mentions = f_mentions;
+  sm->allow_color = f_color;
   sm->thumbnails_left = f_max_thumbs < 0 ? 5000 : f_max_thumbs; // Cap for sanity even if "unlimited"
   sm->posts = g_array_sized_new(FALSE, TRUE, sizeof(long), 10);
   sm->stack = g_array_sized_new(FALSE, TRUE, sizeof(int), 16);
@@ -1304,7 +1367,7 @@ GQuark dtext_parse_error_quark() {
 
 GString* parse_basic_inline(const char* dtext, const ssize_t length, const bool f_strip) {
     GString* output = NULL;
-    StateMachine* sm = init_machine(dtext, length, f_strip, true, false, 0);
+    StateMachine* sm = init_machine(dtext, length, f_strip, true, false, false, 0);
     sm->cs = dtext_en_basic_inline;
 
     if (parse_helper(sm)) {
@@ -1338,7 +1401,7 @@ gboolean parse_helper(StateMachine* sm) {
 /* Everything below is optional, it's only needed to build bin/cdtext.exe. */
 #ifdef CDTEXT
 
-static void parse_file(FILE* input, FILE* output, gboolean opt_strip, gboolean opt_inline, gboolean opt_mentions) {
+static void parse_file(FILE* input, FILE* output, gboolean opt_strip, gboolean opt_inline, gboolean opt_mentions, gboolean opt_color) {
   g_autofree char* dtext = NULL;
   size_t n = 0;
 
@@ -1353,7 +1416,7 @@ static void parse_file(FILE* input, FILE* output, gboolean opt_strip, gboolean o
     }
   }
 
-  StateMachine* sm = init_machine(dtext, length, opt_strip, opt_inline, opt_mentions, -1);
+  StateMachine* sm = init_machine(dtext, length, opt_strip, opt_inline, opt_mentions, opt_color, -1);
   if (!parse_helper(sm)) {
     fprintf(stderr, "dtext parse error: %s\n", sm->error->message);
     exit(1);
@@ -1373,9 +1436,11 @@ int main(int argc, char* argv[]) {
   gboolean opt_strip = FALSE;
   gboolean opt_inline = FALSE;
   gboolean opt_no_mentions = FALSE;
+  gboolean opt_allow_color = FALSE;
 
   GOptionEntry options[] = {
     { "no-mentions", 'm', 0, G_OPTION_ARG_NONE, &opt_no_mentions, "Don't parse @mentions", NULL },
+    { "allow-color", 'c', 0, G_OPTION_ARG_NONE, &opt_allow_color, "Allow color", NULL },
     { "inline",      'i', 0, G_OPTION_ARG_NONE, &opt_inline,      "Parse in inline mode", NULL },
     { "strip",       's', 0, G_OPTION_ARG_NONE, &opt_strip,       "Strip markup", NULL },
     { "verbose",     'v', 0, G_OPTION_ARG_NONE, &opt_verbose,     "Print debug output", NULL },
@@ -1399,7 +1464,7 @@ int main(int argc, char* argv[]) {
   argc--, argv++;
 
   if (argc == 0) {
-    parse_file(stdin, stdout, opt_strip, opt_inline, !opt_no_mentions);
+    parse_file(stdin, stdout, opt_strip, opt_inline, !opt_no_mentions, opt_allow_color);
     return 0;
   }
 
@@ -1410,7 +1475,7 @@ int main(int argc, char* argv[]) {
       return 1;
     }
 
-    parse_file(input, stdout, opt_strip, opt_inline, !opt_no_mentions);
+    parse_file(input, stdout, opt_strip, opt_inline, !opt_no_mentions, opt_allow_color);
     fclose(input);
   }
 

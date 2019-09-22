@@ -157,21 +157,12 @@ blip_id = 'blip #'i id;
 takedown_id = 'take'i ' 'i? 'down 'i 'request 'i? '#'i id;
 ticket_id = 'ticket #'i id;
 
-github_issue_id = 'issue #'i id;
-art_station_id = 'artstation #'i alnum+ >mark_a1 %mark_a2;
-deviant_art_id = 'deviantart #'i id;
-nijie_id = 'nijie #'i id;
-pawoo_id = 'pawoo #'i id;
-pixiv_id = 'pixiv #'i id;
-pixiv_paged_id = 'pixiv #'i id '/p'i page;
-seiga_id = 'seiga #'i id;
-twitter_id = 'twitter #'i id;
-
 ws = ' ' | '\t';
 nonperiod = graph - ('.' | '"');
 header = 'h'i [123456] >mark_a1 %mark_a2 '.' ws*;
 header_with_id = 'h'i [123456] >mark_a1 %mark_a2 '#' nonperiod+ >mark_b1 %mark_b2 '.' ws*;
 aliased_section = '[section='i (nonbracket+ >mark_a1 %mark_a2) ']';
+aliased_section_expanded = '[section,expanded='i (nonbracket+ >mark_a1 %mark_a2) ']';
 
 list_item = '*'+ >mark_a1 %mark_a2 ws+ nonnewline+ >mark_b1 %mark_b2;
 
@@ -300,42 +291,6 @@ inline := |*
 
   takedown_id => {
     append_link(sm, "takedown #", "<a class=\"dtext-link dtext-id-link dtext-takedown-id-link\" href=\"/takedowns/");
-  };
-
-  github_issue_id => {
-    append_link(sm, "issue #", "<a class=\"dtext-link dtext-id-link dtext-github-id-link\" href=\"https://github.com/r888888888/danbooru/issues/");
-  };
-
-  art_station_id => {
-    append_link(sm, "artstation #", "<a class=\"dtext-link dtext-id-link dtext-artstation-id-link\" href=\"https://www.artstation.com/artwork/");
-  };
-
-  deviant_art_id => {
-    append_link(sm, "deviantart #", "<a class=\"dtext-link dtext-id-link dtext-deviantart-id-link\" href=\"https://deviantart.com/deviation/");
-  };
-
-  nijie_id => {
-    append_link(sm, "nijie #", "<a class=\"dtext-link dtext-id-link dtext-nijie-id-link\" href=\"https://nijie.info/view.php?id=");
-  };
-
-  pawoo_id => {
-    append_link(sm, "pawoo #", "<a class=\"dtext-link dtext-id-link dtext-pawoo-id-link\" href=\"https://pawoo.net/web/statuses/");
-  };
-
-  pixiv_id => {
-    append_link(sm, "pixiv #", "<a class=\"dtext-link dtext-id-link dtext-pixiv-id-link\" href=\"http://www.pixiv.net/member_illust.php?mode=medium&illust_id=");
-  };
-
-  pixiv_paged_id => {
-    append_paged_link(sm, "pixiv #", "<a class=\"dtext-link dtext-id-link dtext-pixiv-id-link\" href=\"http://www.pixiv.net/member_illust.php?mode=manga_big&illust_id=", "&page=");
-  };
-
-  seiga_id => {
-    append_link(sm, "seiga #", "<a class=\"dtext-link dtext-id-link dtext-seiga-id-link\" href=\"http://seiga.nicovideo.jp/seiga/im");
-  };
-
-  twitter_id => {
-    append_link(sm, "twitter #", "<a class=\"dtext-link dtext-id-link dtext-twitter-id-link\" href=\"https://twitter.com/i/web/status/");
   };
 
   post_link => {
@@ -522,7 +477,7 @@ inline := |*
     dstack_open_inline(sm, INLINE_NODTEXT, "");
     fcall nodtext;
   };
-  
+
   # these are block level elements that should kick us out of the inline
   # scanner
 
@@ -553,6 +508,13 @@ inline := |*
     g_debug("inline [section]");
     dstack_rewind(sm);
     fexec(sm->p - 8);
+    fret;
+  };
+
+  '[section,expanded]'i => {
+    g_debug("inline expanded [section]");
+    dstack_rewind(sm);
+    fexec(sm->p - 17);
     fret;
   };
 
@@ -884,7 +846,15 @@ main := |*
   '[section]'i space* => {
     dstack_close_before_block(sm);
     const char* html = "<div class=\"expandable\"><div class=\"expandable-header\">"
-                       "<input type=\"button\" value=\"Show\" class=\"expandable-button\"/></div>"
+                       "<span class=\"section-arrow\"></span></div>"
+                       "<div class=\"expandable-content\">";
+    dstack_open_block(sm, BLOCK_SECTION, html);
+  };
+
+  '[section,expanded]'i space* => {
+    dstack_close_before_block(sm);
+    const char* html = "<div class=\"expandable expanded\"><div class=\"expandable-header\">"
+                       "<span class=\"section-arrow expanded\"></span></div>"
                        "<div class=\"expandable-content\">";
     dstack_open_block(sm, BLOCK_SECTION, html);
   };
@@ -893,11 +863,23 @@ main := |*
     g_debug("block [section=]");
     dstack_close_before_block(sm);
     dstack_push(sm, BLOCK_SECTION);
-    append_block(sm, "<div class=\"expandable\"><div class=\"expandable-header\">");
+    append_block(sm, "<div class=\"expandable\"><div class=\"expandable-header\"><span class=\"section-arrow\"></span>");
     append(sm, true, "<span>");
     append_segment_html_escaped(sm, sm->a1, sm->a2 - 1);
     append(sm, true, "</span>");
-    append_block(sm, "<input type=\"button\" value=\"Show\" class=\"expandable-button\"/></div>");
+    append_block(sm, "</div>");
+    append_block(sm, "<div class=\"expandable-content\">");
+  };
+
+  aliased_section_expanded space* => {
+    g_debug("block expanded [section=]");
+    dstack_close_before_block(sm);
+    dstack_push(sm, BLOCK_SECTION);
+    append_block(sm, "<div class=\"expandable expanded\"><div class=\"expandable-header\"><span class=\"section-arrow expanded\"></span>");
+    append(sm, true, "<span>");
+    append_segment_html_escaped(sm, sm->a1, sm->a2 - 1);
+    append(sm, true, "</span>");
+    append_block(sm, "</div>");
     append_block(sm, "<div class=\"expandable-content\">");
   };
 
@@ -1243,7 +1225,7 @@ static void dstack_rewind(StateMachine * sm) {
     case BLOCK_STRIP: append_c(sm, ' '); break;
 
     case QUEUE_EMPTY: break;
-  } 
+  }
 }
 
 static void dstack_close_before_block(StateMachine * sm) {

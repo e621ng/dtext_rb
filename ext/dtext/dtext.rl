@@ -163,6 +163,7 @@ header = 'h'i [123456] >mark_a1 %mark_a2 '.' ws*;
 header_with_id = 'h'i [123456] >mark_a1 %mark_a2 '#' nonperiod+ >mark_b1 %mark_b2 '.' ws*;
 aliased_section = '[section='i (nonbracket+ >mark_a1 %mark_a2) ']';
 aliased_section_expanded = '[section,expanded='i (nonbracket+ >mark_a1 %mark_a2) ']';
+internal_anchor = '[#' (nonbracket+ >mark_a1 %mark_a2) ']';
 
 list_item = '*'+ >mark_a1 %mark_a2 ws+ nonnewline+ >mark_b1 %mark_b2;
 
@@ -185,6 +186,12 @@ basic_inline := |*
 inline := |*
   post_id => {
     append_link(sm, "post #", "<a class=\"dtext-link dtext-id-link dtext-post-id-link\" href=\"/posts/");
+  };
+
+  internal_anchor => {
+    append(sm, true, "<a id=\"");
+    append_segment_uri_escaped(sm, sm->a1, sm->a2-1);
+    append(sm, true, "\"></a>");
   };
 
   thumb_id => {
@@ -524,6 +531,18 @@ inline := |*
     if (dstack_close_block(sm, BLOCK_SECTION, "</div></div>")) {
       fret;
     }
+  };
+
+  aliased_section => {
+    dstack_rewind(sm);
+    fexec(sm->p - 9 - (sm->a2 - sm->a1));
+    fret;
+  };
+
+  aliased_section_expanded => {
+    dstack_rewind(sm);
+    fexec(sm->p - 18 - (sm->a2 - sm->a1));
+    fret;
   };
 
   '[/th]'i => {
@@ -1082,9 +1101,15 @@ static inline void append_wiki_link(StateMachine * sm, const char * tag, const s
   g_autofree gchar* lowercased_tag = g_utf8_strdown(tag, tag_len);
   g_autoptr(GString) normalized_tag = g_string_new(g_strdelimit(lowercased_tag, " ", '_'));
 
-  append(sm, true, "<a class=\"dtext-link dtext-wiki-link\" href=\"/wiki_pages/show_or_new?title=");
-  append_segment_uri_escaped(sm, normalized_tag->str, normalized_tag->str + normalized_tag->len - 1);
-  append(sm, true, "\">");
+  if (tag[0] == '#') {
+    append(sm, true, "<a class=\"dtext-link dtext-wiki-link\" href=\"#");
+    append_segment_uri_escaped(sm, lowercased_tag+1, lowercased_tag + tag_len - 1);
+    append(sm, true, "\">");
+  } else {
+    append(sm, true, "<a class=\"dtext-link dtext-wiki-link\" href=\"/wiki_pages/show_or_new?title=");
+    append_segment_uri_escaped(sm, normalized_tag->str, normalized_tag->str + normalized_tag->len - 1);
+    append(sm, true, "\">");
+  }
   append_segment_html_escaped(sm, title, title + title_len - 1);
   append(sm, true, "</a>");
 }

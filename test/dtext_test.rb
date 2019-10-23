@@ -162,9 +162,10 @@ test2[/ltable]
     %w(art artist char character spec species copy copyright inv invalid meta).each do |color|
       assert_color("<p><span class=\"dtext-color-", color)
     end
+    assert_color("<p><span class=\"dtext-color\" style=\"color:", 'yellow')
     assert_color("<p><span class=\"dtext-color\" style=\"color:", "#ccc")
     assert_color("<p><span class=\"dtext-color\" style=\"color:", "#12345")
-    assert_color("<p><span class=\"dtext-color\" style=\"color:", "#1")
+    assert_color("<p><span class=\"dtext-color\" style=\"color:", "#1a1")
   end
 
   def test_color_not_allowed
@@ -228,7 +229,7 @@ test2[/ltable]
   end
 
   def test_quote_blocks_nested_expand
-    assert_parse("<blockquote><p>a</p><div class=\"expandable\"><div class=\"expandable-header\"><input type=\"button\" value=\"Show\" class=\"expandable-button\"/></div><div class=\"expandable-content\"><p>b</p></div></div><p>c</p></blockquote>", "[quote]\na\n[section]\nb\n[/section]\nc\n[/quote]")
+    assert_parse("<blockquote><p>a</p><div class=\"expandable\"><div class=\"expandable-header\"><span class=\"section-arrow\"></span></div><div class=\"expandable-content\"><p>b</p></div></div><p>c</p></blockquote>", "[quote]\na\n[section]\nb\n[/section]\nc\n[/quote]")
   end
 
   def test_code
@@ -407,15 +408,6 @@ test2[/ltable]
     assert_parse_id_link("dtext-takedown-id-link", "/takedowns/1234", "take down request #1234", display: "takedown #1234")
     assert_parse_id_link("dtext-ticket-id-link", "/tickets/1234", "ticket #1234")
     assert_parse_id_link("dtext-wiki-page-id-link", "/wiki_pages/1234", "wiki #1234")
-
-    assert_parse_id_link("dtext-github-id-link", "https://github.com/r888888888/danbooru/issues/1234", "issue #1234")
-    assert_parse_id_link("dtext-artstation-id-link", "https://www.artstation.com/artwork/A1", "artstation #A1")
-    assert_parse_id_link("dtext-deviantart-id-link", "https://deviantart.com/deviation/1234", "deviantart #1234")
-    assert_parse_id_link("dtext-nijie-id-link", "https://nijie.info/view.php?id=1234", "nijie #1234")
-    assert_parse_id_link("dtext-pawoo-id-link", "https://pawoo.net/web/statuses/1234", "pawoo #1234")
-    assert_parse_id_link("dtext-pixiv-id-link", "http://www.pixiv.net/member_illust.php?mode=medium&illust_id=1234", "pixiv #1234")
-    assert_parse_id_link("dtext-seiga-id-link", "http://seiga.nicovideo.jp/seiga/im1234", "seiga #1234")
-    assert_parse_id_link("dtext-twitter-id-link", "https://twitter.com/i/web/status/1234", "twitter #1234")
   end
 
   def test_boundary_exploit
@@ -423,19 +415,19 @@ test2[/ltable]
   end
 
   def test_expand
-    assert_parse("<div class=\"expandable\"><div class=\"expandable-header\"><input type=\"button\" value=\"Show\" class=\"expandable-button\"/></div><div class=\"expandable-content\"><p>hello world</p></div></div>", "[section]hello world[/section]")
+    assert_parse("<div class=\"expandable\"><div class=\"expandable-header\"><span class=\"section-arrow\"></span></div><div class=\"expandable-content\"><p>hello world</p></div></div>", "[section]hello world[/section]")
   end
 
   def test_aliased_expand
-    assert_parse("<div class=\"expandable\"><div class=\"expandable-header\"><span>hello</span><input type=\"button\" value=\"Show\" class=\"expandable-button\"/></div><div class=\"expandable-content\"><p>blah blah</p></div></div>", "[section=hello]blah blah[/section]")
+    assert_parse("<div class=\"expandable\"><div class=\"expandable-header\"><span class=\"section-arrow\"></span><span>hello</span></div><div class=\"expandable-content\"><p>blah blah</p></div></div>", "[section=hello]blah blah[/section]")
   end
 
   def test_expand_with_nested_code
-    assert_parse("<div class=\"expandable\"><div class=\"expandable-header\"><input type=\"button\" value=\"Show\" class=\"expandable-button\"/></div><div class=\"expandable-content\"><pre>hello\n</pre></div></div>", "[section]\n[code]\nhello\n[/code]\n[/section]")
+    assert_parse("<div class=\"expandable\"><div class=\"expandable-header\"><span class=\"section-arrow\"></span></div><div class=\"expandable-content\"><pre>hello\n</pre></div></div>", "[section]\n[code]\nhello\n[/code]\n[/section]")
   end
 
   def test_expand_with_nested_list
-    assert_parse("<div class=\"expandable\"><div class=\"expandable-header\"><input type=\"button\" value=\"Show\" class=\"expandable-button\"/></div><div class=\"expandable-content\"><ul><li>a</li><li>b<br></li></ul></div></div><p>c</p>", "[section]\n* a\n* b\n[/section]\nc")
+    assert_parse("<div class=\"expandable\"><div class=\"expandable-header\"><span class=\"section-arrow\"></span></div><div class=\"expandable-content\"><ul><li>a</li><li>b<br></li></ul></div></div><p>c</p>", "[section]\n* a\n* b\n[/section]\nc")
   end
 
   def test_inline_mode

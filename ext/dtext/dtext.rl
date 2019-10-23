@@ -125,7 +125,7 @@ post_link = '{{' noncurly+ >mark_a1 %mark_a2 '}}';
 spoilers_open = '[spoiler'i 's'i? ']';
 spoilers_close = '[/spoiler'i 's'i? ']';
 
-color_open = '[color=#'i [0-9a-fA-F]{3,6} >mark_a1 %mark_a2 ']';
+color_open = '[color='i ([a-z]+|'#'i[0-9a-fA-F]{3,6}) >mark_a1 %mark_a2 ']';
 color_typed = '[color='i ('art'i('ist'i)?|'char'i('acter'i)?|'copy'i('right'i)?|'spec'i('ies'i)?|'inv'i('alid'i)?|'meta'i) >mark_a1 %mark_a2 ']';
 color_close = '[/color]'i;
 
@@ -433,21 +433,26 @@ inline := |*
     }
   };
 
-  color_open => {
-    if(!sm->allow_color)
-      fret;
-    dstack_push(sm, INLINE_COLOR);
-    append(sm, true, "<span class=\"dtext-color\" style=\"color:#");
-    append_segment_uri_escaped(sm, sm->a1, sm->a2-1);
-    append(sm, true, "\">");
-  };
-
   color_typed => {
     if(!sm->allow_color)
       fret;
     dstack_push(sm, INLINE_COLOR);
     append(sm, true, "<span class=\"dtext-color-");
     append_segment_uri_escaped(sm, sm->a1, sm->a2-1);
+    append(sm, true, "\">");
+  };
+
+  color_open => {
+    if(!sm->allow_color)
+      fret;
+    dstack_push(sm, INLINE_COLOR);
+    append(sm, true, "<span class=\"dtext-color\" style=\"color:");
+    if(sm->a1[0] == '#') {
+      append(sm, true, "#");
+      append_segment_uri_escaped(sm, sm->a1 + 1, sm->a2-1);
+    } else {
+      append_segment_uri_escaped(sm, sm->a1, sm->a2-1);
+    }
     append(sm, true, "\">");
   };
 

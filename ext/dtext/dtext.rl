@@ -184,12 +184,21 @@ basic_inline := |*
 *|;
 
 inline := |*
+  '\\`' => {
+    append(sm, true, "`");
+  };
+
+  '`' => {
+    append(sm, true, "<code>");
+    fcall inline_code;
+  };
+
   post_id => {
     append_link(sm, "post #", "<a class=\"dtext-link dtext-id-link dtext-post-id-link\" href=\"/posts/");
   };
 
   internal_anchor => {
-    append(sm, true, "<a id=\"");
+    append(sm, true, "<a id=\"dtext-anchor-");
     append_segment_uri_escaped(sm, sm->a1, sm->a2-1);
     append(sm, true, "\"></a>");
   };
@@ -598,6 +607,17 @@ inline := |*
   };
 *|;
 
+inline_code := |*
+  '`' => {
+    append(sm, true, "</code>");
+    fret;
+  };
+
+  any => {
+    append_c_html_escaped(sm, fc);
+  };
+*|;
+
 code := |*
   '[/code]'i => {
     if (dstack_check(sm, BLOCK_CODE)) {
@@ -730,6 +750,15 @@ list := |*
 *|;
 
 main := |*
+  '\\`' => {
+    append(sm, true, "`");
+  };
+
+  '`' => {
+    append(sm, true, "<code>");
+    fcall inline_code;
+  };
+
   header_with_id => {
     char header = *sm->a1;
     g_autoptr(GString) id_name = g_string_new_len(sm->b1, sm->b2 - sm->b1);

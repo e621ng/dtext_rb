@@ -173,6 +173,10 @@ test2[/ltable]
     assert_parse("<p>test</p>", "[color=#123456]test[/color]")
   end
 
+  def test_nested_inline_code
+    assert_parse(%{<code>`what`</code>}, "`\\`what\\``")
+  end
+
   def test_paragraphs
     assert_parse("<p>abc</p>", "abc")
   end

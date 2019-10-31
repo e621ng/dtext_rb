@@ -608,6 +608,10 @@ inline := |*
 *|;
 
 inline_code := |*
+  '\\`' => {
+    append(sm, true, "`");
+  };
+
   '`' => {
     append(sm, true, "</code>");
     fret;

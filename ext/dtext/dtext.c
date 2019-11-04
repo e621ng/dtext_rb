@@ -5711,7 +5711,7 @@ f151:
 f149:
 #line 615 "ext/dtext/dtext.rl"
 	{( sm->te) = ( sm->p)+1;{
-    append(sm, true, "</code>");
+    append(sm, true, "</span>");
     { sm->cs = ( ((int *)sm->stack->data))[--( sm->top)];goto _again;}
   }}
 	goto _again;
@@ -5936,7 +5936,7 @@ f104:
 f91:
 #line 761 "ext/dtext/dtext.rl"
 	{( sm->te) = ( sm->p)+1;{
-    append(sm, true, "<code>");
+    append(sm, true, "<span class=\"inline-code\">");
     {
   size_t len = sm->stack->len;
 

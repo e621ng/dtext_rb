@@ -174,7 +174,7 @@ test2[/ltable]
   end
 
   def test_nested_inline_code
-    assert_parse(%{<code>`what`</code>}, "`\\`what\\``")
+    assert_parse(%{<span class="inline-code">`what`</span>}, "`\\`what\\``")
   end
 
   def test_paragraphs

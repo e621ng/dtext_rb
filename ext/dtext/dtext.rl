@@ -613,7 +613,7 @@ inline_code := |*
   };
 
   '`' => {
-    append(sm, true, "</code>");
+    append(sm, true, "</span>");
     fret;
   };
 
@@ -759,7 +759,7 @@ main := |*
   };
 
   '`' => {
-    append(sm, true, "<code>");
+    append(sm, true, "<span class=\"inline-code\">");
     fcall inline_code;
   };
 

@@ -472,11 +472,8 @@ inline := |*
   };
 
   '[code]'i => {
-    dstack_open_inline(sm, INLINE_CODE, "<code>");
-  };
-
-  '[/code]'i => {
-    dstack_close_inline(sm, INLINE_CODE, "</code>");
+    dstack_open_inline(sm, INLINE_CODE, "<pre>");
+    fcall inline_code_block;
   };
 
   spoilers_open => {
@@ -614,6 +611,21 @@ inline_code := |*
 
   '`' => {
     append(sm, true, "</span>");
+    fret;
+  };
+
+  any => {
+    append_c_html_escaped(sm, fc);
+  };
+*|;
+
+inline_code_block := |*
+  '[/code]'i => {
+    if (dstack_check(sm, INLINE_CODE)) {
+      dstack_close_inline(sm, INLINE_CODE, "</pre>");
+    } else {
+      append(sm, true, "[/code]");
+    }
     fret;
   };
 
@@ -1270,7 +1282,7 @@ static void dstack_rewind(StateMachine * sm) {
     case INLINE_SUP: append(sm, true, "</sup>"); break;
     case INLINE_COLOR: append(sm, true, "</span>"); break;
     case INLINE_TN: append(sm, true, "</span>"); break;
-    case INLINE_CODE: append(sm, true, "</code>"); break;
+    case INLINE_CODE: append(sm, true, "</pre>"); break;
 
     case BLOCK_TN: append_closing_p(sm); break;
     case BLOCK_TABLE: append_block(sm, "</table>"); break;

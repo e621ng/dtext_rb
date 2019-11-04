@@ -5253,7 +5253,7 @@ f146:
 f110:
 #line 191 "ext/dtext/dtext.rl"
 	{( sm->te) = ( sm->p)+1;{
-    append(sm, true, "<code>");
+    append(sm, true, "<span class=\"inline-code\">");
     {
   size_t len = sm->stack->len;
 

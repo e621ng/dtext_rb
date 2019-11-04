@@ -43,7 +43,6 @@ typedef enum element_t {
   BLOCK_H4 = 26,
   BLOCK_H5 = 27,
   BLOCK_H6 = 28,
-  INLINE_CODE = 29,
   BLOCK_STRIP = 30,
   INLINE_SUP = 31,
   INLINE_SUB = 32,
@@ -471,11 +470,6 @@ inline := |*
     dstack_close_inline(sm, INLINE_COLOR, "</span>");
   };
 
-  '[code]'i => {
-    dstack_open_inline(sm, INLINE_CODE, "<pre>");
-    fcall inline_code_block;
-  };
-
   spoilers_open => {
     dstack_open_inline(sm, INLINE_SPOILER, "<span class=\"spoiler\">");
   };
@@ -498,6 +492,28 @@ inline := |*
 
   # these are block level elements that should kick us out of the inline
   # scanner
+
+  '[code]'i => {
+    dstack_close_before_block(sm);
+    fexec sm->ts;
+    fret;
+  };
+
+  '[/code]'i space* => {
+    g_debug("inline [/code]");
+    dstack_close_before_block(sm);
+
+    if (dstack_check(sm, BLOCK_LI)) {
+      dstack_close_list(sm);
+    }
+
+    if (dstack_check(sm, BLOCK_CODE)) {
+      dstack_rewind(sm);
+      fret;
+    } else {
+      append_block(sm, "[/code]");
+    }
+  };
 
   '[quote]'i => {
     g_debug("inline [quote]");
@@ -611,21 +627,6 @@ inline_code := |*
 
   '`' => {
     append(sm, true, "</span>");
-    fret;
-  };
-
-  any => {
-    append_c_html_escaped(sm, fc);
-  };
-*|;
-
-inline_code_block := |*
-  '[/code]'i => {
-    if (dstack_check(sm, INLINE_CODE)) {
-      dstack_close_inline(sm, INLINE_CODE, "</pre>");
-    } else {
-      append(sm, true, "[/code]");
-    }
     fret;
   };
 
@@ -1282,7 +1283,6 @@ static void dstack_rewind(StateMachine * sm) {
     case INLINE_SUP: append(sm, true, "</sup>"); break;
     case INLINE_COLOR: append(sm, true, "</span>"); break;
     case INLINE_TN: append(sm, true, "</span>"); break;
-    case INLINE_CODE: append(sm, true, "</pre>"); break;
 
     case BLOCK_TN: append_closing_p(sm); break;
     case BLOCK_TABLE: append_block(sm, "</table>"); break;

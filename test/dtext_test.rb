@@ -344,7 +344,7 @@ test2[/ltable]
 
   def test_inline_tags
     assert_parse('<p><a rel="nofollow" class="dtext-link dtext-post-search-link" href="/posts?tags=tag">tag</a></p>', "{{tag}}")
-    assert_parse('<p>hello <pre>tag</pre></p>', "hello [code]tag[/code]")
+    assert_parse('<p>hello </p><pre>tag</pre>', "hello [code]tag[/code]")
   end
 
   def test_inline_tags_conjunction

@@ -117,7 +117,7 @@ basic_textile_link = '"' nonquote+ >mark_a1 '"' >mark_a2 ':' (url | internal_url
 bracketed_textile_link = '"' nonquote+ >mark_a1 '"' >mark_a2 ':[' (url | internal_url) >mark_b1 @mark_b2 :>> ']';
 
 basic_wiki_link = '[[' (nonbracket nonpipebracket*) >mark_a1 %mark_a2 ']]';
-aliased_wiki_link = '[[' nonpipebracket+ >mark_a1 %mark_a2 '|' nonpipe+ >mark_b1 %mark_b2 ']]';
+aliased_wiki_link = '[[' nonpipebracket+ >mark_a1 %mark_a2 '|' nonpipebracket+ >mark_b1 %mark_b2 ']]';
 
 post_link = '{{' noncurly+ >mark_a1 %mark_a2 '}}';
 
@@ -313,15 +313,11 @@ inline := |*
   };
 
   basic_wiki_link => {
-    if (!append_wiki_link(sm, sm->a1, sm->a2 - sm->a1, 0, 0)) {
-      fbreak;
-    }
+    append_wiki_link(sm, sm->a1, sm->a2 - sm->a1, sm->a1, sm->a2 - sm->a1);
   };
 
   aliased_wiki_link => {
-    if (!append_wiki_link(sm, sm->a1, sm->a2 - sm->a1, sm->b1, sm->b2 - sm->b1)) {
-      fbreak;
-    }
+    append_wiki_link(sm, sm->a1, sm->a2 - sm->a1, sm->b1, sm->b2 - sm->b1);
   };
 
   basic_textile_link => {
@@ -1174,10 +1170,9 @@ static inline bool append_named_url(StateMachine * sm, const char * url_start, c
   return true;
 }
 
-static inline bool append_wiki_link(StateMachine * sm, const char * tag, const size_t tag_len, const char * title, const size_t title_len) {
+static inline void append_wiki_link(StateMachine * sm, const char * tag, const size_t tag_len, const char * title, const size_t title_len) {
   g_autofree gchar* lowercased_tag = g_utf8_strdown(tag, tag_len);
   g_autoptr(GString) normalized_tag = g_string_new(g_strdelimit(lowercased_tag, " ", '_'));
-
 
   if (tag[0] == '#') {
     append(sm, true, "<a class=\"dtext-link dtext-wiki-link\" href=\"#dtext-anchor-");
@@ -1188,19 +1183,8 @@ static inline bool append_wiki_link(StateMachine * sm, const char * tag, const s
     append_segment_uri_escaped(sm, normalized_tag->str, normalized_tag->str + normalized_tag->len - 1);
     append(sm, true, "\">");
   }
-  if(title) {
-    g_autoptr(GString) parsed_title = parse_basic_inline(title, title_len - 1, sm->f_strip);
-
-    if (!parsed_title) {
-      return false;
-    }
-    append_segment(sm, false, parsed_title->str, parsed_title->str + parsed_title->len - 1);
-  } else {
-    append_segment_html_escaped(sm, tag, tag + tag_len - 1);
-  }
+  append_segment_html_escaped(sm, title, title + title_len - 1);
   append(sm, true, "</a>");
-
-  return true;
 }
 
 static inline void append_paged_link(StateMachine * sm, const char * title, const char * ahref, const char * param) {

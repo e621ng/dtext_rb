@@ -367,6 +367,10 @@ test2[/ltable]
     assert_parse("<p>Tags <strong>(<a class=\"dtext-link dtext-wiki-link\" href=\"/wiki_pages/show_or_new?title=howto%3Atag\">Tagging Guidelines</a> | <a class=\"dtext-link dtext-wiki-link\" href=\"/wiki_pages/show_or_new?title=howto%3Atag_checklist\">Tag Checklist</a> | <a class=\"dtext-link dtext-wiki-link\" href=\"/wiki_pages/show_or_new?title=tag_groups\">Tag Groups</a>)</strong></p>", "Tags [b]([[howto:tag|Tagging Guidelines]] | [[howto:tag_checklist|Tag Checklist]] | [[Tag Groups]])[/b]")
   end
 
+  def test_aliased_wiki_link_with_formatting
+    assert_parse("<p><a class=\"dtext-link dtext-wiki-link\" href=\"/wiki_pages/show_or_new?title=halo_%28series%29\"><em>Halo</em> franchise</a></p>", "[[Halo (series)|[i]Halo[/i] franchise]]")
+  end
+
   def text_note_id_link
     assert_parse('<p><a class="dtext-link dtext-id-link dtext-note-id-link" href="/notes/1234">note #1234</a></p>', "note #1234")
   end

@@ -493,6 +493,28 @@ inline := |*
   # these are block level elements that should kick us out of the inline
   # scanner
 
+  '[table]'i => {
+    dstack_close_before_block(sm);
+    fexec sm->ts;
+    fret;
+  };
+
+  '[/table]'i space* => {
+    g_debug("inline [/table]");
+    dstack_close_before_block(sm);
+
+    if (dstack_check(sm, BLOCK_LI)) {
+      dstack_close_list(sm);
+    }
+
+    if (dstack_check(sm, BLOCK_TABLE)) {
+      dstack_rewind(sm);
+      fret;
+    } else {
+      append_block(sm, "[/table]");
+    }
+  };
+
   '[code]'i => {
     dstack_close_before_block(sm);
     fexec sm->ts;

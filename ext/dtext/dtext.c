@@ -374,7 +374,7 @@ static inline void append_wiki_link(StateMachine * sm, const char * tag, const s
   g_autoptr(GString) normalized_tag = g_string_new(g_strdelimit(lowercased_tag, " ", '_'));
 
   if (tag[0] == '#') {
-    append(sm, true, "<a class=\"dtext-link dtext-wiki-link\" href=\"#dtext-anchor-");
+    append(sm, true, "<a class=\"dtext-link dtext-wiki-link\" href=\"#");
     append_segment_uri_escaped(sm, lowercased_tag+1, lowercased_tag + tag_len - 1);
     append(sm, true, "\">");
   } else {
@@ -6464,7 +6464,7 @@ f34:
 }
 #line 199 "ext/dtext/dtext.rl"
 	{( sm->te) = ( sm->p)+1;{
-    append(sm, true, "<a id=\"dtext-anchor-");
+    append(sm, true, "<a id=\"");
     append_segment_uri_escaped(sm, sm->a1, sm->a2-1);
     append(sm, true, "\"></a>");
   }}

@@ -198,7 +198,9 @@ inline := |*
 
   internal_anchor => {
     append(sm, true, "<a id=\"");
-    append_segment_uri_escaped(sm, sm->a1, sm->a2-1);
+    g_autofree gchar* lowercased_tag = g_utf8_strdown(sm->a1, sm->a2-sm->a1);
+    const size_t tag_len = sm->a2 - sm->a1;
+    append_segment_uri_escaped(sm, lowercased_tag, lowercased_tag + tag_len -1);
     append(sm, true, "\"></a>");
   };
 
@@ -1121,6 +1123,20 @@ static inline void append_segment_uri_escaped(StateMachine * sm, const char * a,
   sm->output = g_string_append(sm->output, segment2);
 }
 
+static inline void append_segment_uri_possible_fragment_escaped(StateMachine * sm, const char * a, const char * b) {
+  if (sm->f_strip) {
+    return;
+  }
+
+  g_autofree char * segment1 = NULL;
+  g_autofree char * segment2 = NULL;
+  g_autoptr(GString) segment_string = g_string_new_len(a, b - a + 1);
+
+  segment1 = g_uri_escape_string(segment_string->str, "#", TRUE);
+  segment2 = g_markup_escape_text(segment1, -1);
+  sm->output = g_string_append(sm->output, segment2);
+}
+
 static inline void append_segment_html_escaped(StateMachine * sm, const char * a, const char * b) {
   g_autofree gchar * segment = g_markup_escape_text(a, b - a + 1);
   sm->output = g_string_append(sm->output, segment);
@@ -1180,7 +1196,7 @@ static inline void append_wiki_link(StateMachine * sm, const char * tag, const s
     append(sm, true, "\">");
   } else {
     append(sm, true, "<a class=\"dtext-link dtext-wiki-link\" href=\"/wiki_pages/show_or_new?title=");
-    append_segment_uri_escaped(sm, normalized_tag->str, normalized_tag->str + normalized_tag->len - 1);
+    append_segment_uri_possible_fragment_escaped(sm, normalized_tag->str, normalized_tag->str + normalized_tag->len - 1);
     append(sm, true, "\">");
   }
   append_segment_html_escaped(sm, title, title + title_len - 1);

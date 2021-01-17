@@ -55,7 +55,7 @@ test2[/ltable]
 
   def test_relative_urls
     assert_parse('<p><a class="dtext-link dtext-id-link dtext-post-id-link" href="http://danbooru.donmai.us/posts/1234">post #1234</a></p>', "post #1234", base_url: "http://danbooru.donmai.us")
-    assert_parse('<p><a class="dtext-link" href="http://danbooru.donmai.us/posts">posts</a></p>', '"posts":/posts', base_url: "http://danbooru.donmai.us")
+    assert_parse('<p><a rel="nofollow" class="dtext-link" href="http://danbooru.donmai.us/posts">posts</a></p>', '"posts":/posts', base_url: "http://danbooru.donmai.us")
     assert_parse('<p><a rel="nofollow" href="http://danbooru.donmai.us/users?name=evazion">@evazion</a></p>', "@evazion", base_url: "http://danbooru.donmai.us")
   end
 
@@ -103,11 +103,11 @@ test2[/ltable]
   end
 
   def test_wiki_links
-    assert_parse("<p>a <a class=\"dtext-link dtext-wiki-link\" href=\"/wiki_pages/show_or_new?title=b\">b</a> c</p>", "a [[b]] c")
+    assert_parse("<p>a <a rel=\"nofollow\" class=\"dtext-link dtext-wiki-link\" href=\"/wiki_pages/show_or_new?title=b\">b</a> c</p>", "a [[b]] c")
   end
 
   def test_wiki_links_spoiler
-    assert_parse("<p>a <a class=\"dtext-link dtext-wiki-link\" href=\"/wiki_pages/show_or_new?title=spoiler\">spoiler</a> c</p>", "a [[spoiler]] c")
+    assert_parse("<p>a <a rel=\"nofollow\" class=\"dtext-link dtext-wiki-link\" href=\"/wiki_pages/show_or_new?title=spoiler\">spoiler</a> c</p>", "a [[spoiler]] c")
   end
 
   def test_wiki_links_edge
@@ -241,80 +241,80 @@ test2[/ltable]
   end
 
   def test_urls
-    assert_parse('<p>a <a class="dtext-link" href="http://test.com">http://test.com</a> b</p>', 'a http://test.com b')
+    assert_parse('<p>a <a rel="nofollow" class="dtext-link" href="http://test.com">http://test.com</a> b</p>', 'a http://test.com b')
   end
 
   def test_urls_with_newline
-    assert_parse('<p><a class="dtext-link" href="http://test.com">http://test.com</a><br>b</p>', "http://test.com\nb")
+    assert_parse('<p><a rel="nofollow" class="dtext-link" href="http://test.com">http://test.com</a><br>b</p>', "http://test.com\nb")
   end
 
   def test_urls_with_paths
-    assert_parse('<p>a <a class="dtext-link" href="http://test.com/~bob/image.jpg">http://test.com/~bob/image.jpg</a> b</p>', 'a http://test.com/~bob/image.jpg b')
+    assert_parse('<p>a <a rel="nofollow" class="dtext-link" href="http://test.com/~bob/image.jpg">http://test.com/~bob/image.jpg</a> b</p>', 'a http://test.com/~bob/image.jpg b')
   end
 
   def test_urls_with_fragment
-    assert_parse('<p>a <a class="dtext-link" href="http://test.com/home.html#toc">http://test.com/home.html#toc</a> b</p>', 'a http://test.com/home.html#toc b')
+    assert_parse('<p>a <a rel="nofollow" class="dtext-link" href="http://test.com/home.html#toc">http://test.com/home.html#toc</a> b</p>', 'a http://test.com/home.html#toc b')
   end
 
   def test_auto_urls
-    assert_parse('<p>a <a class="dtext-link" href="http://test.com">http://test.com</a>. b</p>', 'a http://test.com. b')
+    assert_parse('<p>a <a rel="nofollow" class="dtext-link" href="http://test.com">http://test.com</a>. b</p>', 'a http://test.com. b')
   end
 
   def test_auto_urls_in_parentheses
-    assert_parse('<p>a (<a class="dtext-link" href="http://test.com">http://test.com</a>) b</p>', 'a (http://test.com) b')
+    assert_parse('<p>a (<a rel="nofollow" class="dtext-link" href="http://test.com">http://test.com</a>) b</p>', 'a (http://test.com) b')
   end
 
   def test_old_style_links
-    assert_parse('<p><a class="dtext-link dtext-external-link" href="http://test.com">test</a></p>', '"test":http://test.com')
+    assert_parse('<p><a rel="nofollow" class="dtext-link dtext-external-link" href="http://test.com">test</a></p>', '"test":http://test.com')
   end
 
   def test_old_style_links_with_inline_tags
-    assert_parse('<p><a class="dtext-link dtext-external-link" href="http://test.com"><em>test</em></a></p>', '"[i]test[/i]":http://test.com')
+    assert_parse('<p><a rel="nofollow" class="dtext-link dtext-external-link" href="http://test.com"><em>test</em></a></p>', '"[i]test[/i]":http://test.com')
   end
 
   def test_old_style_links_with_nested_links
-    assert_parse('<p><a class="dtext-link dtext-external-link" href="http://test.com">post #1</a></p>', '"post #1":http://test.com')
+    assert_parse('<p><a rel="nofollow" class="dtext-link dtext-external-link" href="http://test.com">post #1</a></p>', '"post #1":http://test.com')
   end
 
   def test_old_style_links_with_special_entities
-    assert_parse('<p>&quot;1&quot; <a class="dtext-link dtext-external-link" href="http://three.com">2 &amp; 3</a></p>', '"1" "2 & 3":http://three.com')
+    assert_parse('<p>&quot;1&quot; <a rel="nofollow" class="dtext-link dtext-external-link" href="http://three.com">2 &amp; 3</a></p>', '"1" "2 & 3":http://three.com')
   end
 
   def test_new_style_links
-    assert_parse('<p><a class="dtext-link dtext-external-link" href="http://test.com">test</a></p>', '"test":[http://test.com]')
+    assert_parse('<p><a rel="nofollow" class="dtext-link dtext-external-link" href="http://test.com">test</a></p>', '"test":[http://test.com]')
   end
 
   def test_new_style_links_with_inline_tags
-    assert_parse('<p><a class="dtext-link dtext-external-link" href="http://test.com/(parentheses)"><em>test</em></a></p>', '"[i]test[/i]":[http://test.com/(parentheses)]')
+    assert_parse('<p><a rel="nofollow" class="dtext-link dtext-external-link" href="http://test.com/(parentheses)"><em>test</em></a></p>', '"[i]test[/i]":[http://test.com/(parentheses)]')
   end
 
   def test_new_style_links_with_nested_links
-    assert_parse('<p><a class="dtext-link dtext-external-link" href="http://test.com">post #1</a></p>', '"post #1":[http://test.com]')
+    assert_parse('<p><a rel="nofollow" class="dtext-link dtext-external-link" href="http://test.com">post #1</a></p>', '"post #1":[http://test.com]')
   end
 
   def test_new_style_links_with_parentheses
-    assert_parse('<p><a class="dtext-link dtext-external-link" href="http://test.com/(parentheses)">test</a></p>', '"test":[http://test.com/(parentheses)]')
-    assert_parse('<p>(<a class="dtext-link dtext-external-link" href="http://test.com/(parentheses)">test</a>)</p>', '("test":[http://test.com/(parentheses)])')
-    assert_parse('<p>[<a class="dtext-link dtext-external-link" href="http://test.com/(parentheses)">test</a>]</p>', '["test":[http://test.com/(parentheses)]]')
+    assert_parse('<p><a rel="nofollow" class="dtext-link dtext-external-link" href="http://test.com/(parentheses)">test</a></p>', '"test":[http://test.com/(parentheses)]')
+    assert_parse('<p>(<a rel="nofollow" class="dtext-link dtext-external-link" href="http://test.com/(parentheses)">test</a>)</p>', '("test":[http://test.com/(parentheses)])')
+    assert_parse('<p>[<a rel="nofollow" class="dtext-link dtext-external-link" href="http://test.com/(parentheses)">test</a>]</p>', '["test":[http://test.com/(parentheses)]]')
   end
 
   def test_fragment_only_urls
-    assert_parse('<p><a class="dtext-link" href="#toc">test</a></p>', '"test":#toc')
-    assert_parse('<p><a class="dtext-link" href="#toc">test</a></p>', '"test":[#toc]')
+    assert_parse('<p><a rel="nofollow" class="dtext-link" href="#toc">test</a></p>', '"test":#toc')
+    assert_parse('<p><a rel="nofollow" class="dtext-link" href="#toc">test</a></p>', '"test":[#toc]')
   end
 
   def test_auto_url_boundaries
-    assert_parse('<p>a （<a class="dtext-link" href="http://test.com">http://test.com</a>） b</p>', 'a （http://test.com） b')
-    assert_parse('<p>a 〜<a class="dtext-link" href="http://test.com">http://test.com</a>〜 b</p>', 'a 〜http://test.com〜 b')
-    assert_parse('<p>a <a class="dtext-link" href="http://test.com">http://test.com</a>　 b</p>', 'a http://test.com　 b')
+    assert_parse('<p>a （<a rel="nofollow" class="dtext-link" href="http://test.com">http://test.com</a>） b</p>', 'a （http://test.com） b')
+    assert_parse('<p>a 〜<a rel="nofollow" class="dtext-link" href="http://test.com">http://test.com</a>〜 b</p>', 'a 〜http://test.com〜 b')
+    assert_parse('<p>a <a rel="nofollow" class="dtext-link" href="http://test.com">http://test.com</a>　 b</p>', 'a http://test.com　 b')
   end
 
   def test_old_style_link_boundaries
-    assert_parse('<p>a 「<a class="dtext-link dtext-external-link" href="http://test.com">title</a>」 b</p>', 'a 「"title":http://test.com」 b')
+    assert_parse('<p>a 「<a rel="nofollow" class="dtext-link dtext-external-link" href="http://test.com">title</a>」 b</p>', 'a 「"title":http://test.com」 b')
   end
 
   def test_new_style_link_boundaries
-    assert_parse('<p>a 「<a class="dtext-link dtext-external-link" href="http://test.com">title</a>」 b</p>', 'a 「"title":[http://test.com]」 b')
+    assert_parse('<p>a 「<a rel="nofollow" class="dtext-link dtext-external-link" href="http://test.com">title</a>」 b</p>', 'a 「"title":[http://test.com]」 b')
   end
 
   def test_lists_1
@@ -360,15 +360,15 @@ test2[/ltable]
   end
 
   def test_complex_links_1
-    assert_parse("<p><a class=\"dtext-link dtext-wiki-link\" href=\"/wiki_pages/show_or_new?title=1\">2 3</a> | <a class=\"dtext-link dtext-wiki-link\" href=\"/wiki_pages/show_or_new?title=4\">5 6</a></p>", "[[1|2 3]] | [[4|5 6]]")
+    assert_parse("<p><a rel=\"nofollow\" class=\"dtext-link dtext-wiki-link\" href=\"/wiki_pages/show_or_new?title=1\">2 3</a> | <a rel=\"nofollow\" class=\"dtext-link dtext-wiki-link\" href=\"/wiki_pages/show_or_new?title=4\">5 6</a></p>", "[[1|2 3]] | [[4|5 6]]")
   end
 
   def test_complex_links_2
-    assert_parse("<p>Tags <strong>(<a class=\"dtext-link dtext-wiki-link\" href=\"/wiki_pages/show_or_new?title=howto%3Atag\">Tagging Guidelines</a> | <a class=\"dtext-link dtext-wiki-link\" href=\"/wiki_pages/show_or_new?title=howto%3Atag_checklist\">Tag Checklist</a> | <a class=\"dtext-link dtext-wiki-link\" href=\"/wiki_pages/show_or_new?title=tag_groups\">Tag Groups</a>)</strong></p>", "Tags [b]([[howto:tag|Tagging Guidelines]] | [[howto:tag_checklist|Tag Checklist]] | [[Tag Groups]])[/b]")
+    assert_parse("<p>Tags <strong>(<a rel=\"nofollow\" class=\"dtext-link dtext-wiki-link\" href=\"/wiki_pages/show_or_new?title=howto%3Atag\">Tagging Guidelines</a> | <a rel=\"nofollow\" class=\"dtext-link dtext-wiki-link\" href=\"/wiki_pages/show_or_new?title=howto%3Atag_checklist\">Tag Checklist</a> | <a rel=\"nofollow\" class=\"dtext-link dtext-wiki-link\" href=\"/wiki_pages/show_or_new?title=tag_groups\">Tag Groups</a>)</strong></p>", "Tags [b]([[howto:tag|Tagging Guidelines]] | [[howto:tag_checklist|Tag Checklist]] | [[Tag Groups]])[/b]")
   end
 
   def test_anchored_wiki_link
-    assert_parse("<p><a class=\"dtext-link dtext-wiki-link\" href=\"/wiki_pages/show_or_new?title=avoid_posting#a\">ABC 123</a></p>", "[[avoid_posting#A|ABC 123]]")
+    assert_parse("<p><a rel=\"nofollow\" class=\"dtext-link dtext-wiki-link\" href=\"/wiki_pages/show_or_new?title=avoid_posting#a\">ABC 123</a></p>", "[[avoid_posting#A|ABC 123]]")
   end
 
   def test_internal_anchor
@@ -476,14 +476,14 @@ test2[/ltable]
   end
 
   def test_utf8_links
-    assert_parse('<p><a class="dtext-link" href="/posts?tags=approver:葉月">7893</a></p>', '"7893":/posts?tags=approver:葉月')
-    assert_parse('<p><a class="dtext-link" href="/posts?tags=approver:葉月">7893</a></p>', '"7893":[/posts?tags=approver:葉月]')
-    assert_parse('<p><a class="dtext-link" href="http://danbooru.donmai.us/posts?tags=approver:葉月">http://danbooru.donmai.us/posts?tags=approver:葉月</a></p>', 'http://danbooru.donmai.us/posts?tags=approver:葉月')
+    assert_parse('<p><a rel="nofollow" class="dtext-link" href="/posts?tags=approver:葉月">7893</a></p>', '"7893":/posts?tags=approver:葉月')
+    assert_parse('<p><a rel="nofollow" class="dtext-link" href="/posts?tags=approver:葉月">7893</a></p>', '"7893":[/posts?tags=approver:葉月]')
+    assert_parse('<p><a rel="nofollow" class="dtext-link" href="http://danbooru.donmai.us/posts?tags=approver:葉月">http://danbooru.donmai.us/posts?tags=approver:葉月</a></p>', 'http://danbooru.donmai.us/posts?tags=approver:葉月')
   end
 
   def test_delimited_links
     dtext = '(blah <https://en.wikipedia.org/wiki/Orange_(fruit)>).'
-    html = '<p>(blah <a class="dtext-link" href="https://en.wikipedia.org/wiki/Orange_(fruit)">https://en.wikipedia.org/wiki/Orange_(fruit)</a>).</p>'
+    html = '<p>(blah <a rel="nofollow" class="dtext-link" href="https://en.wikipedia.org/wiki/Orange_(fruit)">https://en.wikipedia.org/wiki/Orange_(fruit)</a>).</p>'
     assert_parse(html, dtext)
   end
 

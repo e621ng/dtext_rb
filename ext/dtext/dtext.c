@@ -349,7 +349,7 @@ static inline void append_link(StateMachine * sm, const char * title, const char
 }
 
 static inline void append_url(StateMachine * sm, const char * url_start, const char * url_end, const char * title_start, const char * title_end) {
-  append(sm, true, "<a class=\"dtext-link\" href=\"");
+  append(sm, true, "<a rel=\"nofollow\" class=\"dtext-link\" href=\"");
   append_segment_html_escaped(sm, url_start, url_end);
   append(sm, true, "\">");
   if (sm->f_strip) {
@@ -367,9 +367,9 @@ static inline bool append_named_url(StateMachine * sm, const char * url_start, c
   }
 
   if (url_start[0] == '/' || url_start[0] == '#') {
-    append(sm, true, "<a class=\"dtext-link\" href=\"");
+    append(sm, true, "<a rel=\"nofollow\" class=\"dtext-link\" href=\"");
   } else {
-    append(sm, true, "<a class=\"dtext-link dtext-external-link\" href=\"");
+    append(sm, true, "<a rel=\"nofollow\" class=\"dtext-link dtext-external-link\" href=\"");
   }
 
   append_segment_html_escaped(sm, url_start, url_end);
@@ -388,11 +388,11 @@ static inline void append_wiki_link(StateMachine * sm, const char * tag, const s
   g_autoptr(GString) normalized_tag = g_string_new(g_strdelimit(lowercased_tag, " ", '_'));
 
   if (tag[0] == '#') {
-    append(sm, true, "<a class=\"dtext-link dtext-wiki-link\" href=\"#");
+    append(sm, true, "<a rel=\"nofollow\" class=\"dtext-link dtext-wiki-link\" href=\"#");
     append_segment_uri_escaped(sm, lowercased_tag+1, lowercased_tag + tag_len - 1);
     append(sm, true, "\">");
   } else {
-    append(sm, true, "<a class=\"dtext-link dtext-wiki-link\" href=\"/wiki_pages/show_or_new?title=");
+    append(sm, true, "<a rel=\"nofollow\" class=\"dtext-link dtext-wiki-link\" href=\"/wiki_pages/show_or_new?title=");
     append_segment_uri_possible_fragment_escaped(sm, normalized_tag->str, normalized_tag->str + normalized_tag->len - 1);
     append(sm, true, "\">");
   }

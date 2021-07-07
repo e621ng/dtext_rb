@@ -132,6 +132,7 @@ id = digit+ >mark_a1 %mark_a2;
 page = digit+ >mark_b1 %mark_b2;
 
 post_id = 'post #'i id;
+post_changes_for_id = 'post changes #'i id;
 thumb_id = 'thumb #'i id;
 post_appeal_id = 'appeal #'i id;
 post_flag_id = 'flag #'i id;
@@ -220,6 +221,10 @@ inline := |*
     } else {
       append_link(sm, "post #", "<a class=\"dtext-link dtext-id-link dtext-post-id-link\" href=\"/posts/");
     }
+  };
+
+  post_changes_for_id => {
+    append_link(sm, "post changes #", "<a class=\"dtext-link dtext-id-link dtext-post-changes-for-id-link\" href=\"/post_versions?search[post_id]=");
   };
 
   post_appeal_id => {

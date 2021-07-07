@@ -398,6 +398,7 @@ test2[/ltable]
   def test_id_links
     assert_parse_id_link("dtext-post-id-link", "/posts/1234", "post #1234")
     assert_parse_id_link("dtext-post-appeal-id-link", "/post_appeals/1234", "appeal #1234")
+    assert_parse_id_link("dtext-post-changes-for-id-link", "/post_versions?search[post_id]=1234", "post changes #1234")
     assert_parse_id_link("dtext-post-flag-id-link", "/post_flags/1234", "flag #1234")
     assert_parse_id_link("dtext-note-id-link", "/notes/1234", "note #1234")
     assert_parse_id_link("dtext-forum-post-id-link", "/forum_posts/1234", "forum #1234")

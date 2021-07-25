@@ -6851,7 +6851,7 @@ f138:
 }
 #line 302 "ext/dtext/dtext.rl"
 	{( sm->te) = ( sm->p);( sm->p)--;{
-    append_link(sm, "set #", "<a class=\"dtext-link dtext-id-link dtext-set-id-link\" href=\"/sets/");
+    append_link(sm, "set #", "<a class=\"dtext-link dtext-id-link dtext-set-id-link\" href=\"/post_sets/");
   }}
 	goto _again;
 f125:

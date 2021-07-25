@@ -300,7 +300,7 @@ inline := |*
   };
 
   set_id => {
-    append_link(sm, "set #", "<a class=\"dtext-link dtext-id-link dtext-set-id-link\" href=\"/sets/");
+    append_link(sm, "set #", "<a class=\"dtext-link dtext-id-link dtext-set-id-link\" href=\"/post_sets/");
   };
 
   blip_id => {

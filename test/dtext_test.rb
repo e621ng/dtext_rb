@@ -398,6 +398,7 @@ test2[/ltable]
   def test_id_links
     assert_parse_id_link("dtext-post-id-link", "/posts/1234", "post #1234")
     assert_parse_id_link("dtext-post-appeal-id-link", "/post_appeals/1234", "appeal #1234")
+    assert_parse_id_link("dtext-post-changes-for-id-link", "/post_versions?search[post_id]=1234", "post changes #1234")
     assert_parse_id_link("dtext-post-flag-id-link", "/post_flags/1234", "flag #1234")
     assert_parse_id_link("dtext-note-id-link", "/notes/1234", "note #1234")
     assert_parse_id_link("dtext-forum-post-id-link", "/forum_posts/1234", "forum #1234")
@@ -413,7 +414,7 @@ test2[/ltable]
     assert_parse_id_link("dtext-mod-action-id-link", "/mod_actions/1234", "mod action #1234")
     assert_parse_id_link("dtext-user-feedback-id-link", "/user_feedbacks/1234", "record #1234")
     assert_parse_id_link("dtext-blip-id-link", "/blips/1234", "blip #1234")
-    assert_parse_id_link("dtext-set-id-link", "/sets/1234", "set #1234")
+    assert_parse_id_link("dtext-set-id-link", "/post_sets/1234", "set #1234")
     assert_parse_id_link("dtext-takedown-id-link", "/takedowns/1234", "takedown #1234")
     assert_parse_id_link("dtext-takedown-id-link", "/takedowns/1234", "take down #1234", display: "takedown #1234")
     assert_parse_id_link("dtext-takedown-id-link", "/takedowns/1234", "takedown request #1234", display: "takedown #1234")

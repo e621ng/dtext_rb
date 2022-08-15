@@ -24,7 +24,7 @@ Gem::Specification.new do |s|
   ]
   s.homepage = "http://github.com/r888888888/dtext_rb"
   s.licenses = ["MIT"]
-  s.rubygems_version = "3.1.6"
+  s.rubygems_version = "3.3.20"
   s.summary = "Compiled DText parser"
 
   if s.respond_to? :specification_version then

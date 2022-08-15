@@ -110,6 +110,10 @@ test2[/ltable]
     assert_parse("<p>a <a rel=\"nofollow\" class=\"dtext-link dtext-wiki-link\" href=\"/wiki_pages/show_or_new?title=spoiler\">spoiler</a> c</p>", "a [[spoiler]] c")
   end
 
+  def test_wiki_links_aliased
+    assert_parse("<p><a rel=\"nofollow\" class=\"dtext-link dtext-wiki-link\" href=\"/wiki_pages/show_or_new?title=wiki_page\">Some Text</a></p>", "[[wiki page|Some Text]]")
+  end
+
   def test_wiki_links_edge
     assert_parse("<p>[[|_|]]</p>", "[[|_|]]")
     assert_parse("<p>[[||_||]]</p>", "[[||_||]]")
@@ -353,6 +357,10 @@ test2[/ltable]
 
   def test_inline_tags_special_entities
     assert_parse('<p><a rel="nofollow" class="dtext-link dtext-post-search-link" href="/posts?tags=%3C3">&lt;3</a></p>', "{{<3}}")
+  end
+
+  def test_inline_tags_aliased
+    assert_parse('<p><a rel="nofollow" class="dtext-link dtext-post-search-link" href="/posts?tags=fox%20smile">Best Search</a></p>', "{{fox smile|Best Search}}")
   end
 
   def test_extra_newlines

@@ -33,13 +33,13 @@ file "ext/dtext/dtext.c" => Dir["ext/dtext/dtext.{rl,h}", "Rakefile"] do
 end
 
 task test_inline_ragel: :compile do
-  Bundler.with_clean_env do
+  Bundler.with_unbundled_env do
     ruby '-Ilib', '-rdtext', '-e', 'puts DTextRagel.parse("hello\r\nworld")'
   end
 end
 
 task test: :compile do
-  Bundler.with_clean_env do
+  Bundler.with_unbundled_env do
     ruby "-Ilib", '-rdtext', "test/dtext_test.rb" #, '--name=test_strip'
   end
 end

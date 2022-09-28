@@ -100,6 +100,7 @@ nonbracket = ^']';
 nonpipe = ^'|';
 nonpipebracket = nonpipe & nonbracket;
 noncurly = ^'}';
+nonpipecurly = nonpipe & noncurly;
 
 utf8graph = (0x00..0x7F) & graph
           | 0xC2..0xDF 0x80..0xBF
@@ -119,7 +120,8 @@ bracketed_textile_link = '"' nonquote+ >mark_a1 '"' >mark_a2 ':[' (url | interna
 basic_wiki_link = '[[' (nonbracket nonpipebracket*) >mark_a1 %mark_a2 ']]';
 aliased_wiki_link = '[[' nonpipebracket+ >mark_a1 %mark_a2 '|' nonpipebracket+ >mark_b1 %mark_b2 ']]';
 
-post_link = '{{' noncurly+ >mark_a1 %mark_a2 '}}';
+basic_post_search_link = '{{' (noncurly nonpipecurly*) >mark_a1 %mark_a2 '}}';
+aliased_post_search_link = '{{' nonpipecurly+ >mark_a1 %mark_a2 '|' nonpipecurly+ >mark_b1 %mark_b2 '}}';
 
 spoilers_open = '[spoiler'i 's'i? ']';
 spoilers_close = '[/spoiler'i 's'i? ']';
@@ -315,8 +317,12 @@ inline := |*
     append_link(sm, "takedown #", "<a class=\"dtext-link dtext-id-link dtext-takedown-id-link\" href=\"/takedowns/");
   };
 
-  post_link => {
-    append_link(sm, "", "<a rel=\"nofollow\" class=\"dtext-link dtext-post-search-link\" href=\"/posts?tags=");
+  basic_post_search_link => {
+    append_post_search_link(sm, sm->a1, sm->a2 - sm->a1, sm->a1, sm->a2 - sm->a1);
+  };
+
+  aliased_post_search_link => {
+    append_post_search_link(sm, sm->a1, sm->a2 - sm->a1, sm->b1, sm->b2 - sm->b1);
   };
 
   basic_wiki_link => {
@@ -1204,6 +1210,17 @@ static inline void append_wiki_link(StateMachine * sm, const char * tag, const s
     append_segment_uri_possible_fragment_escaped(sm, normalized_tag->str, normalized_tag->str + normalized_tag->len - 1);
     append(sm, true, "\">");
   }
+  append_segment_html_escaped(sm, title, title + title_len - 1);
+  append(sm, true, "</a>");
+}
+
+static inline void append_post_search_link(StateMachine * sm, const char * tag, const size_t tag_len, const char * title, const size_t title_len) {
+  g_autofree gchar* lowercased_tag = g_utf8_strdown(tag, tag_len);
+  g_autoptr(GString) normalized_tag = g_string_new(lowercased_tag);
+
+  append(sm, true, "<a rel=\"nofollow\" class=\"dtext-link dtext-post-search-link\" href=\"/posts?tags=");
+  append_segment_uri_escaped(sm, normalized_tag->str, normalized_tag->str + normalized_tag->len - 1);
+  append(sm, true, "\">");
   append_segment_html_escaped(sm, title, title + title_len - 1);
   append(sm, true, "</a>");
 }

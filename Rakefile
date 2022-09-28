@@ -4,7 +4,6 @@ begin
   require "rake/extensiontask"
   require "rubygems/package_task"
   require "bundler"
-  require "jeweler"
 
   Bundler.setup(:default, :development)
 rescue LoadError, Bundler::BundlerError => e
@@ -12,28 +11,6 @@ rescue LoadError, Bundler::BundlerError => e
   $stderr.puts "Run `bundle install` to install missing gems"
   exit 1
 end
-
-Jeweler::Tasks.new do |gem|
-  # gem is a Gem::Specification... see http://docs.rubygems.org/read/chapter/20 for more options
-  gem.name = "dtext_rb"
-  gem.homepage = "http://github.com/r888888888/dtext_rb"
-  gem.license = "MIT"
-  gem.summary = %Q{Compiled DText parser}
-  gem.description = %Q{Compiled DText parser}
-  gem.email = "r888888888@gmail.com"
-  gem.authors = ["r888888888"]
-  gem.executables = %w(cdtext dtext)
-  gem.files = %w(
-    bin/cdtext
-    bin/dtext
-    lib/dtext.rb
-    lib/dtext_ruby.rb
-    lib/dtext/dtext.so
-  )
-
-  Gem::PackageTask.new(gem)
-end
-Jeweler::RubygemsDotOrgTasks.new
 
 Rake::ExtensionTask.new "dtext" do |ext|
   # this goes here to ensure ragel runs *before* the extension is compiled.
@@ -56,13 +33,13 @@ file "ext/dtext/dtext.c" => Dir["ext/dtext/dtext.{rl,h}", "Rakefile"] do
 end
 
 task test_inline_ragel: :compile do
-  Bundler.with_clean_env do
+  Bundler.with_unbundled_env do
     ruby '-Ilib', '-rdtext', '-e', 'puts DTextRagel.parse("hello\r\nworld")'
   end
 end
 
 task test: :compile do
-  Bundler.with_clean_env do
+  Bundler.with_unbundled_env do
     ruby "-Ilib", '-rdtext', "test/dtext_test.rb" #, '--name=test_strip'
   end
 end

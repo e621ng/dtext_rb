@@ -1,0 +1,16 @@
+version: "3"
+
+services:
+  dtext:
+    build: ./
+    image: dtext
+    volumes:
+      - .:/app
+
+  rake:
+    image: dtext
+    volumes:
+      - .:/app
+    entrypoint: rake
+    profiles: 
+      - "rake"

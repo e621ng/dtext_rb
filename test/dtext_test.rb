@@ -405,7 +405,6 @@ test2[/ltable]
 
   def test_id_links
     assert_parse_id_link("dtext-post-id-link", "/posts/1234", "post #1234")
-    assert_parse_id_link("dtext-post-appeal-id-link", "/post_appeals/1234", "appeal #1234")
     assert_parse_id_link("dtext-post-changes-for-id-link", "/post_versions?search[post_id]=1234", "post changes #1234")
     assert_parse_id_link("dtext-post-flag-id-link", "/post_flags/1234", "flag #1234")
     assert_parse_id_link("dtext-note-id-link", "/notes/1234", "note #1234")
@@ -418,7 +417,6 @@ test2[/ltable]
     assert_parse_id_link("dtext-ban-id-link", "/bans/1234", "ban #1234")
     assert_parse_id_link("dtext-tag-alias-id-link", "/tag_aliases/1234", "alias #1234")
     assert_parse_id_link("dtext-tag-implication-id-link", "/tag_implications/1234", "implication #1234")
-    assert_parse_id_link("dtext-favorite-group-id-link", "/favorite_groups/1234", "favgroup #1234")
     assert_parse_id_link("dtext-mod-action-id-link", "/mod_actions/1234", "mod action #1234")
     assert_parse_id_link("dtext-user-feedback-id-link", "/user_feedbacks/1234", "record #1234")
     assert_parse_id_link("dtext-blip-id-link", "/blips/1234", "blip #1234")

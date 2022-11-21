@@ -127,7 +127,7 @@ spoilers_open = '[spoiler'i 's'i? ']';
 spoilers_close = '[/spoiler'i 's'i? ']';
 
 color_open = '[color='i ([a-z]+|'#'i[0-9a-fA-F]{3,6}) >mark_a1 %mark_a2 ']';
-color_typed = '[color='i ('art'i('ist'i)?|'char'i('acter'i)?|'copy'i('right'i)?|'spec'i('ies'i)?|'inv'i('alid'i)?|'meta'i) >mark_a1 %mark_a2 ']';
+color_typed = '[color='i ('art'i('ist'i)?|'char'i('acter'i)?|'copy'i('right'i)?|'spec'i('ies'i)?|'inv'i('alid'i)?|'meta'i|'lore'i) >mark_a1 %mark_a2 ']';
 color_close = '[/color]'i;
 
 id = digit+ >mark_a1 %mark_a2;
@@ -136,7 +136,6 @@ page = digit+ >mark_b1 %mark_b2;
 post_id = 'post #'i id;
 post_changes_for_id = 'post changes #'i id;
 thumb_id = 'thumb #'i id;
-post_appeal_id = 'appeal #'i id;
 post_flag_id = 'flag #'i id;
 note_id = 'note #'i id;
 forum_post_id = 'forum #'i id;
@@ -150,7 +149,6 @@ ban_id = 'ban #'i id;
 bulk_update_request_id = 'bur #'i id;
 tag_alias_id = 'alias #'i id;
 tag_implication_id = 'implication #'i id;
-favorite_group_id = 'favgroup #'i id;
 mod_action_id = 'mod action #'i id;
 user_feedback_id = 'record #'i id;
 wiki_page_id = 'wiki #'i id;
@@ -229,10 +227,6 @@ inline := |*
     append_link(sm, "post changes #", "<a class=\"dtext-link dtext-id-link dtext-post-changes-for-id-link\" href=\"/post_versions?search[post_id]=");
   };
 
-  post_appeal_id => {
-    append_link(sm, "appeal #", "<a class=\"dtext-link dtext-id-link dtext-post-appeal-id-link\" href=\"/post_appeals/");
-  };
-
   post_flag_id => {
     append_link(sm, "flag #", "<a class=\"dtext-link dtext-id-link dtext-post-flag-id-link\" href=\"/post_flags/");
   };
@@ -283,10 +277,6 @@ inline := |*
 
   tag_implication_id => {
     append_link(sm, "implication #", "<a class=\"dtext-link dtext-id-link dtext-tag-implication-id-link\" href=\"/tag_implications/");
-  };
-
-  favorite_group_id => {
-    append_link(sm, "favgroup #", "<a class=\"dtext-link dtext-id-link dtext-favorite-group-id-link\" href=\"/favorite_groups/");
   };
 
   mod_action_id => {

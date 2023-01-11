@@ -163,7 +163,7 @@ test2[/ltable]
   end
 
   def test_color
-    %w(art artist char character spec species copy copyright inv invalid meta).each do |color|
+    %w(art artist char character spec species copy copyright inv invalid meta lore).each do |color|
       assert_color("<p><span class=\"dtext-color-", color)
     end
     assert_color("<p><span class=\"dtext-color\" style=\"color:", 'yellow')

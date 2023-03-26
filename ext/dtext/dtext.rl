@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include <stdlib.h>
 #include <string.h>
 #include <glib.h>
 
@@ -1349,85 +1348,3 @@ gboolean parse_helper(StateMachine* sm) {
 
   return sm->error == NULL;
 }
-
-/* Everything below is optional, it's only needed to build bin/cdtext.exe. */
-#ifdef CDTEXT
-
-static void parse_file(FILE* input, FILE* output, gboolean opt_inline, gboolean opt_color) {
-  g_autofree char* dtext = NULL;
-  size_t n = 0;
-
-  ssize_t length = getdelim(&dtext, &n, '\0', input);
-  if (length == -1) {
-    if (ferror(input)) {
-      perror("getdelim failed");
-      exit(1);
-    } else /* EOF (file was empty, continue with the empty string) */ {
-      dtext = NULL;
-      length = 0;
-    }
-  }
-
-  StateMachine* sm = init_machine(dtext, length, opt_inline, opt_color, -1);
-  if (!parse_helper(sm)) {
-    fprintf(stderr, "dtext parse error: %s\n", sm->error->message);
-    exit(1);
-  }
-
-  if (fwrite(sm->output->str, 1, sm->output->len, output) != sm->output->len) {
-    perror("fwrite failed");
-    exit(1);
-  }
-
-  free_machine(sm);
-}
-
-int main(int argc, char* argv[]) {
-  GError* error = NULL;
-  gboolean opt_verbose = FALSE;
-  gboolean opt_inline = FALSE;
-  gboolean opt_allow_color = FALSE;
-
-  GOptionEntry options[] = {
-    { "allow-color", 'c', 0, G_OPTION_ARG_NONE, &opt_allow_color, "Allow color", NULL },
-    { "inline",      'i', 0, G_OPTION_ARG_NONE, &opt_inline,      "Parse in inline mode", NULL },
-    { "verbose",     'v', 0, G_OPTION_ARG_NONE, &opt_verbose,     "Print debug output", NULL },
-    { NULL }
-  };
-
-  g_autoptr(GOptionContext) context = g_option_context_new("[FILE...]");
-  g_option_context_add_main_entries(context, options, NULL);
-
-  if (!g_option_context_parse(context, &argc, &argv, &error)) {
-    fprintf(stderr, "option parsing failed: %s\n", error->message);
-    g_clear_error(&error);
-    return 1;
-  }
-
-  if (opt_verbose) {
-    g_setenv("G_MESSAGES_DEBUG", "all", TRUE);
-  }
-
-  /* skip first argument (progname) */
-  argc--, argv++;
-
-  if (argc == 0) {
-    parse_file(stdin, stdout, opt_inline, opt_allow_color);
-    return 0;
-  }
-
-  for (const char* filename = *argv; argc > 0; argc--, argv++) {
-    FILE* input = fopen(filename, "r");
-    if (!input) {
-      perror("fopen failed");
-      return 1;
-    }
-
-    parse_file(input, stdout, opt_inline, opt_allow_color);
-    fclose(input);
-  }
-
-  return 0;
-}
-
-#endif

@@ -10,13 +10,12 @@ Gem::Specification.new do |s|
   s.date = "2021-07-08"
   s.description = "Compiled DText parser"
   s.email = "r888888888@gmail.com"
-  s.executables = ["cdtext", "dtext"]
+  s.executables = ["dtext"]
   s.extensions = ["ext/dtext/extconf.rb"]
   s.extra_rdoc_files = [
     "README.md"
   ]
   s.files = [
-    "bin/cdtext",
     "bin/dtext",
     "lib/dtext.rb",
     "lib/dtext/dtext.so",

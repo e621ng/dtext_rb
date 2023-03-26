@@ -2,8 +2,8 @@ require 'minitest/autorun'
 require 'dtext/dtext'
 
 class DTextTest < Minitest::Test
-  def assert_parse_id_link(class_name, url, input, display: nil)
-    assert_parse(%{<p><a class="dtext-link dtext-id-link #{class_name}" href="#{url}">#{display ? display : input}</a></p>}, input)
+  def assert_parse_id_link(class_name, url, input, display: input)
+    assert_parse(%{<p><a class="dtext-link dtext-id-link #{class_name}" href="#{url}">#{display}</a></p>}, input)
   end
 
   def assert_parse(expected, input, **options)
@@ -225,7 +225,7 @@ test2[/ltable]
   end
 
   def test_quote_blocks_nested_expand
-    assert_parse("<blockquote><p>a</p><div class=\"expandable\"><div class=\"expandable-header\"><span class=\"section-arrow\"></span></div><div class=\"expandable-content\"><p>b</p></div></div><p>c</p></blockquote>", "[quote]\na\n[section]\nb\n[/section]\nc\n[/quote]")
+    assert_parse("<blockquote><p>a</p><details><summary></summary><p>b</p></details><p>c</p></blockquote>", "[quote]\na\n[section]\nb\n[/section]\nc\n[/quote]")
   end
 
   def test_code
@@ -418,19 +418,23 @@ test2[/ltable]
   end
 
   def test_expand
-    assert_parse("<div class=\"expandable\"><div class=\"expandable-header\"><span class=\"section-arrow\"></span></div><div class=\"expandable-content\"><p>hello world</p></div></div>", "[section]hello world[/section]")
+    assert_parse("<details><summary></summary><p>hello world</p></details>", "[section]hello world[/section]")
+  end
+
+  def test_expand_missing_close
+    assert_parse("<details><summary></summary><p>a</p></details>", "[section]a")
   end
 
   def test_aliased_expand
-    assert_parse("<div class=\"expandable\"><div class=\"expandable-header\"><span class=\"section-arrow\"></span><span>hello</span></div><div class=\"expandable-content\"><p>blah blah</p></div></div>", "[section=hello]blah blah[/section]")
+    assert_parse("<details><summary>hello</summary><p>blah blah</p></details>", "[section=hello]blah blah[/section]")
   end
 
   def test_expand_with_nested_code
-    assert_parse("<div class=\"expandable\"><div class=\"expandable-header\"><span class=\"section-arrow\"></span></div><div class=\"expandable-content\"><pre>hello\n</pre></div></div>", "[section]\n[code]\nhello\n[/code]\n[/section]")
+    assert_parse("<details><summary></summary><pre>hello\n</pre></details>", "[section]\n[code]\nhello\n[/code]\n[/section]")
   end
 
   def test_expand_with_nested_list
-    assert_parse("<div class=\"expandable\"><div class=\"expandable-header\"><span class=\"section-arrow\"></span></div><div class=\"expandable-content\"><ul><li>a</li><li>b<br></li></ul></div></div><p>c</p>", "[section]\n* a\n* b\n[/section]\nc")
+    assert_parse("<details><summary></summary><ul><li>a</li><li>b<br></li></ul></details><p>c</p>", "[section]\n* a\n* b\n[/section]\nc")
   end
 
   def test_inline_mode

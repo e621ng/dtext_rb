@@ -1,5 +1,4 @@
 require "dtext/dtext"
-require "nokogiri"
 
 module DText
   class Error < StandardError; end
@@ -8,13 +7,11 @@ module DText
     parse(str, :inline => true)
   end
 
-  def self.parse(str, inline: false, allow_color: false, base_url: nil, max_thumbs: 25)
+  def self.parse(str, inline: false, allow_color: false, max_thumbs: 25, base_url: nil)
     return nil if str.nil?
     raise TypeError unless str.respond_to?(:gsub)
     str = preprocess_for_tables(str)
-    results = c_parse(str, inline, allow_color, max_thumbs)
-    results[0] = resolve_relative_urls(results[0], base_url) if base_url
-    results
+    c_parse(str, inline, allow_color, max_thumbs, base_url)
   end
 
   private
@@ -35,15 +32,5 @@ module DText
     end
   rescue ArgumentError
     raise Error
-  end
-
-  def self.resolve_relative_urls(html, base_url)
-    nodes = Nokogiri::HTML.fragment(html)
-    nodes.traverse do |node|
-      if node[:href]&.start_with?("/")
-        node[:href] = base_url.chomp("/") + node[:href]
-      end
-    end
-    nodes.to_s
   end
 end

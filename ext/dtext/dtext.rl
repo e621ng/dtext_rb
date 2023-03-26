@@ -197,7 +197,8 @@ inline := |*
       sm->thumbnails_left -= 1;
       append(sm, "<a class=\"dtext-link dtext-id-link dtext-post-id-link thumb-placeholder-link\" data-id=\"");
       append_segment_html_escaped(sm, sm->a1, sm->a2 - 1);
-      append(sm, "\" href=\"/posts/");
+      append(sm, "\" href=\"");
+      append_url(sm, "/posts/");
       append_segment_uri_escaped(sm, sm->a1, sm->a2 -1);
       append(sm, "\">");
       append(sm, "post #");
@@ -214,7 +215,6 @@ inline := |*
   note_id => { append_id_link(sm, "note", "note", "/notes/"); };
   forum_post_id => { append_id_link(sm, "forum", "forum-post", "/forum_posts/"); };
   forum_topic_id => { append_id_link(sm, "topic", "forum-topic", "/forum_topics/"); };
-
   comment_id =>{ append_id_link(sm, "comment", "comment", "/comments/"); };
   pool_id =>{ append_id_link(sm, "pool", "pool", "/pools/"); };
   user_id =>{ append_id_link(sm, "user", "user", "/users/"); };
@@ -272,7 +272,7 @@ inline := |*
     const char* url_start = sm->ts;
     const char* url_end = find_boundary_c(match_end);
 
-    append_url(sm, url_start, url_end, url_start, url_end);
+    append_unnamed_url(sm, url_start, url_end);
 
     if (url_end < match_end) {
       append_segment_html_escaped(sm, url_end + 1, match_end);
@@ -280,7 +280,7 @@ inline := |*
   };
 
   delimited_url => {
-    append_url(sm, sm->ts + 1, sm->te - 2, sm->ts + 1, sm->te - 2);
+    append_unnamed_url(sm, sm->ts + 1, sm->te - 2);
   };
 
   # probably a tag. examples include @.@ and @_@
@@ -1001,11 +1001,19 @@ static inline void append_segment_html_escaped(StateMachine * sm, const char * a
   sm->output = g_string_append(sm->output, segment);
 }
 
+static inline void append_url(StateMachine * sm, const char* url) {
+  if ((url[0] == '/' || url[0] == '#') && sm->base_url) {
+    append(sm, sm->base_url);
+  }
+
+  append(sm, url);
+}
+
 static inline void append_id_link(StateMachine * sm, const char * title, const char * id_name, const char * url) {
   append(sm, "<a class=\"dtext-link dtext-id-link dtext-");
   append(sm, id_name);
   append(sm, "-id-link\" href=\"");
-  append(sm, url);
+  append_url(sm, url);
   append_segment_uri_escaped(sm, sm->a1, sm->a2 - 1);
   append(sm, "\">");
   append(sm, title);
@@ -1014,11 +1022,11 @@ static inline void append_id_link(StateMachine * sm, const char * title, const c
   append(sm, "</a>");
 }
 
-static inline void append_url(StateMachine * sm, const char * url_start, const char * url_end, const char * title_start, const char * title_end) {
+static inline void append_unnamed_url(StateMachine * sm, const char * url_start, const char * url_end) {
   append(sm, "<a rel=\"nofollow\" class=\"dtext-link\" href=\"");
   append_segment_html_escaped(sm, url_start, url_end);
   append(sm, "\">");
-  append_segment_html_escaped(sm, title_start, title_end);
+  append_segment_html_escaped(sm, url_start, url_end);
   append(sm, "</a>");
 }
 
@@ -1031,6 +1039,9 @@ static inline bool append_named_url(StateMachine * sm, const char * url_start, c
 
   if (url_start[0] == '/' || url_start[0] == '#') {
     append(sm, "<a rel=\"nofollow\" class=\"dtext-link\" href=\"");
+    if (sm->base_url) {
+      append(sm, sm->base_url);
+    }
   } else {
     append(sm, "<a rel=\"nofollow\" class=\"dtext-link dtext-external-link\" href=\"");
   }
@@ -1052,7 +1063,8 @@ static inline void append_wiki_link(StateMachine * sm, const char * tag, const s
     append_segment_uri_escaped(sm, lowercased_tag+1, lowercased_tag + tag_len - 1);
     append(sm, "\">");
   } else {
-    append(sm, "<a rel=\"nofollow\" class=\"dtext-link dtext-wiki-link\" href=\"/wiki_pages/show_or_new?title=");
+    append(sm, "<a rel=\"nofollow\" class=\"dtext-link dtext-wiki-link\" href=\"");
+    append_url(sm, "/wiki_pages/show_or_new?title=");
     append_segment_uri_possible_fragment_escaped(sm, normalized_tag->str, normalized_tag->str + normalized_tag->len - 1);
     append(sm, "\">");
   }
@@ -1064,7 +1076,8 @@ static inline void append_post_search_link(StateMachine * sm, const char * tag, 
   g_autofree gchar* lowercased_tag = g_utf8_strdown(tag, tag_len);
   g_autoptr(GString) normalized_tag = g_string_new(lowercased_tag);
 
-  append(sm, "<a rel=\"nofollow\" class=\"dtext-link dtext-post-search-link\" href=\"/posts?tags=");
+  append(sm, "<a rel=\"nofollow\" class=\"dtext-link dtext-post-search-link\" href=\"");
+  append_url(sm, "/posts?tags=");
   append_segment_uri_escaped(sm, normalized_tag->str, normalized_tag->str + normalized_tag->len - 1);
   append(sm, "\">");
   append_segment_html_escaped(sm, title, title + title_len - 1);

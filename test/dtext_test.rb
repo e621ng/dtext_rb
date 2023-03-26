@@ -56,6 +56,8 @@ test2[/ltable]
   def test_relative_urls
     assert_parse('<p><a class="dtext-link dtext-id-link dtext-post-id-link" href="http://danbooru.donmai.us/posts/1234">post #1234</a></p>', "post #1234", base_url: "http://danbooru.donmai.us")
     assert_parse('<p><a rel="nofollow" class="dtext-link" href="http://danbooru.donmai.us/posts">posts</a></p>', '"posts":/posts', base_url: "http://danbooru.donmai.us")
+    assert_parse('<p><a rel="nofollow" class="dtext-link dtext-external-link" href="https://example.com/posts">posts</a></p>', '"posts":https://example.com/posts', base_url: "https://e621.net")
+    assert_parse('<p><a rel="nofollow" class="dtext-link dtext-wiki-link" href="https://e621.net/wiki_pages/show_or_new?title=abc">abc</a></p>', '[[abc]]', base_url: "https://e621.net")
   end
 
   def test_thumbnails

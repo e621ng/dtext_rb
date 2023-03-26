@@ -31,11 +31,9 @@ Gem::Specification.new do |s|
   end
 
   if s.respond_to? :add_runtime_dependency then
-    s.add_runtime_dependency(%q<nokogiri>, ["~> 1.8"])
     s.add_development_dependency(%q<minitest>, ["~> 5.10"])
     s.add_development_dependency(%q<rake-compiler>, ["~> 1.0"])
   else
-    s.add_dependency(%q<nokogiri>, ["~> 1.8"])
     s.add_dependency(%q<minitest>, ["~> 5.10"])
     s.add_dependency(%q<rake-compiler>, ["~> 1.0"])
   end

@@ -40,6 +40,7 @@ typedef struct StateMachine {
   int list_nest;
   int thumbnails_left;
   bool allow_color;
+  const char * base_url;
 } StateMachine;
 
 StateMachine* init_machine(const char * src, size_t len, bool f_inline, bool f_color, long f_max_thumbs);

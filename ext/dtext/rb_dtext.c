@@ -7,13 +7,17 @@
 static VALUE mDText = Qnil;
 static VALUE mDTextError = Qnil;
 
-static VALUE c_parse(VALUE self, VALUE input, VALUE f_inline, VALUE f_allow_color, VALUE f_max_thumbs) {
+static VALUE c_parse(VALUE self, VALUE input, VALUE f_inline, VALUE f_allow_color, VALUE f_max_thumbs, VALUE base_url) {
   if (NIL_P(input)) {
     return Qnil;
   }
 
   StringValue(input);
   StateMachine* sm = init_machine(RSTRING_PTR(input), RSTRING_LEN(input), RTEST(f_inline), RTEST(f_allow_color), FIX2LONG(f_max_thumbs));
+  if (!NIL_P(base_url)) {
+    sm->base_url = StringValueCStr(base_url); // base_url.to_str # raises ArgumentError if base_url contains null bytes.
+  }
+
   if (!parse_helper(sm)) {
     GError* error = g_error_copy(sm->error);
     free_machine(sm);
@@ -38,5 +42,5 @@ static VALUE c_parse(VALUE self, VALUE input, VALUE f_inline, VALUE f_allow_colo
 void Init_dtext() {
   mDText = rb_define_module("DText");
   mDTextError = rb_define_class_under(mDText, "Error", rb_eStandardError);
-  rb_define_singleton_method(mDText, "c_parse", c_parse, 4);
+  rb_define_singleton_method(mDText, "c_parse", c_parse, 5);
 }

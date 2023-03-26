@@ -130,7 +130,6 @@ post_flag_id = 'flag #'i id;
 note_id = 'note #'i id;
 forum_post_id = 'forum #'i id;
 forum_topic_id = 'topic #'i id;
-forum_topic_paged_id = 'topic #'i id '/p'i page;
 comment_id = 'comment #'i id;
 pool_id = 'pool #'i id;
 user_id = 'user #'i id;
@@ -215,10 +214,6 @@ inline := |*
   note_id => { append_id_link(sm, "note", "note", "/notes/"); };
   forum_post_id => { append_id_link(sm, "forum", "forum-post", "/forum_posts/"); };
   forum_topic_id => { append_id_link(sm, "topic", "forum-topic", "/forum_topics/"); };
-
-  forum_topic_paged_id => {
-    append_paged_link(sm, "topic #", "<a class=\"dtext-link dtext-id-link dtext-forum-topic-id-link\" href=\"/forum_topics/", "?page=");
-  };
 
   comment_id =>{ append_id_link(sm, "comment", "comment", "/comments/"); };
   pool_id =>{ append_id_link(sm, "pool", "pool", "/pools/"); };
@@ -1073,19 +1068,6 @@ static inline void append_post_search_link(StateMachine * sm, const char * tag, 
   append_segment_uri_escaped(sm, normalized_tag->str, normalized_tag->str + normalized_tag->len - 1);
   append(sm, "\">");
   append_segment_html_escaped(sm, title, title + title_len - 1);
-  append(sm, "</a>");
-}
-
-static inline void append_paged_link(StateMachine * sm, const char * title, const char * ahref, const char * param) {
-  append(sm, ahref);
-  append_segment(sm, sm->a1, sm->a2 - 1);
-  append(sm, param);
-  append_segment(sm, sm->b1, sm->b2 - 1);
-  append(sm, "\">");
-  append(sm, title);
-  append_segment(sm, sm->a1, sm->a2 - 1);
-  append(sm, "/p");
-  append_segment(sm, sm->b1, sm->b2 - 1);
   append(sm, "</a>");
 }
 

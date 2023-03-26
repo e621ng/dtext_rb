@@ -385,10 +385,6 @@ test2[/ltable]
     assert_parse('<table class="striped"><th>foo</th></table>', "[table][th]foo")
   end
 
-  def test_forum_links
-    assert_parse('<p><a class="dtext-link dtext-id-link dtext-forum-topic-id-link" href="/forum_topics/1234?page=4">topic #1234/p4</a></p>', "topic #1234/p4")
-  end
-
   def test_id_links
     assert_parse_id_link("dtext-post-id-link", "/posts/1234", "post #1234")
     assert_parse_id_link("dtext-post-changes-for-id-link", "/post_versions?search[post_id]=1234", "post changes #1234")

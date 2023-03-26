@@ -15,10 +15,8 @@ typedef enum element_t {
   BLOCK_SPOILER = 3,
   BLOCK_QUOTE = 4,
   BLOCK_SECTION = 5,
-  BLOCK_NODTEXT = 6,
   BLOCK_CODE = 7,
   BLOCK_TD = 8,
-  INLINE_NODTEXT = 9,
   INLINE_B = 10,
   INLINE_I = 11,
   INLINE_U = 12,
@@ -378,11 +376,6 @@ inline := |*
     }
   };
 
-  '[nodtext]'i => {
-    dstack_open_inline(sm, INLINE_NODTEXT, "");
-    fcall nodtext;
-  };
-
   # these are block level elements that should kick us out of the inline
   # scanner
 
@@ -554,29 +547,6 @@ code := |*
       append(sm, "[/code]");
     }
     fret;
-  };
-
-  any => {
-    append_c_html_escaped(sm, fc);
-  };
-*|;
-
-nodtext := |*
-  '[/nodtext]'i => {
-    if (dstack_check2(sm, BLOCK_NODTEXT)) {
-      g_debug("block dstack check");
-      dstack_pop(sm);
-      dstack_pop(sm);
-      append_block(sm, "</p>");
-      fret;
-    } else if (dstack_check(sm, INLINE_NODTEXT)) {
-      g_debug("inline dstack check");
-      dstack_pop(sm);
-      fret;
-    } else {
-      g_debug("else dstack check");
-      append(sm, "[/nodtext]");
-    }
   };
 
   any => {
@@ -834,13 +804,6 @@ main := |*
     append(sm, "</summary>");
   };
 
-  '[nodtext]'i space* => {
-    dstack_close_before_block(sm);
-    dstack_open_block(sm, BLOCK_NODTEXT, "");
-    dstack_open_block(sm, BLOCK_P, "<p>");
-    fcall nodtext;
-  };
-
   '[table]'i => {
     dstack_close_before_block(sm);
     dstack_open_block(sm, BLOCK_TABLE, "<table class=\"striped\">");
@@ -908,15 +871,6 @@ static inline element_t dstack_peek(const StateMachine * sm) {
 
 static inline bool dstack_check(const StateMachine * sm, element_t expected_element) {
   return dstack_peek(sm) == expected_element;
-}
-
-static inline bool dstack_check2(const StateMachine * sm, element_t expected_element) {
-  if (sm->dstack->length < 2) {
-    return false;
-  }
-
-  element_t top2 = GPOINTER_TO_INT(g_queue_peek_nth(sm->dstack, sm->dstack->length - 2));
-  return top2 == expected_element;
 }
 
 // Return true if the given tag is currently open.
@@ -1152,12 +1106,10 @@ static void dstack_rewind(StateMachine * sm) {
     case BLOCK_SPOILER: append_block(sm, "</div>"); break;
     case BLOCK_QUOTE: append_block(sm, "</blockquote>"); break;
     case BLOCK_SECTION: append_block(sm, "</details>"); break;
-    case BLOCK_NODTEXT: append_closing_p(sm); break;
     case BLOCK_CODE: append_block(sm, "</pre>"); break;
     case BLOCK_TD: append_block(sm, "</td>"); break;
     case BLOCK_TH: append_block(sm, "</th>"); break;
 
-    case INLINE_NODTEXT: break;
     case INLINE_B: append(sm, "</strong>"); break;
     case INLINE_I: append(sm, "</em>"); break;
     case INLINE_U: append(sm, "</u>"); break;

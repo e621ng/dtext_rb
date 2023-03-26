@@ -221,7 +221,6 @@ test2[/ltable]
     assert_parse('<blockquote><div class="spoiler"><p>foo</p></div></blockquote>', "[quote][spoiler]foo[/quote]")
     assert_parse('<blockquote><pre>foo[/quote]</pre></blockquote>', "[quote][code]foo[/quote]")
     assert_parse('<blockquote><details><summary></summary><p>foo</p></details></blockquote>', "[quote][section]foo[/quote]")
-    assert_parse('<blockquote><p>foo[/quote]</p></p></blockquote>', "[quote][nodtext]foo[/quote]") # FIXME: wrong closing </p>
     assert_parse('<blockquote><table class="striped"><td>foo</td></table></blockquote>', "[quote][table][td]foo[/quote]")
     assert_parse('<blockquote><ul><li>foo</li></ul></blockquote>', "[quote]* foo[/quote]")
     assert_parse('<blockquote><h1>foo</h1></blockquote>', "[quote]h1. foo[/quote]")
@@ -471,12 +470,6 @@ test2[/ltable]
     dtext = '(blah <https://en.wikipedia.org/wiki/Orange_(fruit)>).'
     html = '<p>(blah <a rel="nofollow" class="dtext-link" href="https://en.wikipedia.org/wiki/Orange_(fruit)">https://en.wikipedia.org/wiki/Orange_(fruit)</a>).</p>'
     assert_parse(html, dtext)
-  end
-
-  def test_nodtext
-    assert_parse('<p>[b]not bold[/b]</p><p> <strong>bold</strong></p>', "[nodtext][b]not bold[/b][/nodtext] [b]bold[/b]")
-    assert_parse('<p>[b]not bold[/b]</p><p><strong>hello</strong></p>', "[nodtext][b]not bold[/b][/nodtext]\n\n[b]hello[/b]")
-    assert_parse('<p> [b]not bold[/b]</p>', " [nodtext][b]not bold[/b][/nodtext]")
   end
 
   def test_stack_depth_limit

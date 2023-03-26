@@ -19,7 +19,7 @@ Rake::ExtensionTask.new "dtext" do |ext|
 end
 
 file "ext/dtext/dtext.cpp" => Dir["ext/dtext/dtext.{cpp.rl,h}", "Rakefile"] do
-  sh "ragel -G1 -C ext/dtext/dtext.cpp.rl -o ext/dtext/dtext.cpp"
+  sh "ragel -G2 -C ext/dtext/dtext.cpp.rl -o ext/dtext/dtext.cpp"
 end
 
 def run_dtext(*args)

@@ -7,13 +7,13 @@
 static VALUE mDTextRagel = Qnil;
 static VALUE mDTextRagelError = Qnil;
 
-static VALUE c_parse(VALUE self, VALUE input, VALUE f_inline, VALUE f_disable_mentions, VALUE f_allow_color, VALUE f_max_thumbs) {
+static VALUE c_parse(VALUE self, VALUE input, VALUE f_inline, VALUE f_allow_color, VALUE f_max_thumbs) {
   if (NIL_P(input)) {
     return Qnil;
   }
 
   StringValue(input);
-  StateMachine* sm = init_machine(RSTRING_PTR(input), RSTRING_LEN(input), RTEST(f_inline), !RTEST(f_disable_mentions), RTEST(f_allow_color), FIX2LONG(f_max_thumbs));
+  StateMachine* sm = init_machine(RSTRING_PTR(input), RSTRING_LEN(input), RTEST(f_inline), RTEST(f_allow_color), FIX2LONG(f_max_thumbs));
   if (!parse_helper(sm)) {
     GError* error = g_error_copy(sm->error);
     free_machine(sm);
@@ -38,5 +38,5 @@ static VALUE c_parse(VALUE self, VALUE input, VALUE f_inline, VALUE f_disable_me
 void Init_dtext() {
   mDTextRagel = rb_define_module("DTextRagel");
   mDTextRagelError = rb_define_class_under(mDTextRagel, "Error", rb_eStandardError);
-  rb_define_singleton_method(mDTextRagel, "c_parse", c_parse, 5);
+  rb_define_singleton_method(mDTextRagel, "c_parse", c_parse, 4);
 }

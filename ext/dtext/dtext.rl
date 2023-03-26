@@ -102,10 +102,6 @@ utf8graph = (0x00..0x7F) & graph
           | 0xE0..0xEF 0x80..0xBF 0x80..0xBF
           | 0xF0..0xF4 0x80..0xBF 0x80..0xBF 0x80..0xBF;
 
-
-mention = '@' utf8graph+ >mark_a1 %mark_a2;
-delimited_mention = '<' mention :>> '>';
-
 url = 'http' 's'? '://' utf8graph+;
 delimited_url = '<' url :>> '>';
 internal_url = [/#] utf8graph+;
@@ -296,40 +292,6 @@ inline := |*
   # probably a tag. examples include @.@ and @_@
   '@' graph '@' => {
     append_segment_html_escaped(sm, sm->ts, sm->te - 1);
-  };
-
-  mention => {
-    if (!sm->f_mentions || (sm->a1 > sm->pb && sm->a1 - 1 > sm->pb && sm->a1[-2] != ' ' && sm->a1[-2] != '\r' && sm->a1[-2] != '\n')) {
-      // handle emails
-      append_c(sm, '@');
-      fexec sm->a1;
-    } else {
-      const char* match_end = sm->a2 - 1;
-      const char* name_start = sm->a1;
-      const char* name_end = find_boundary_c(match_end);
-
-      append(sm, "<a rel=\"nofollow\" href=\"/users?name=");
-      append_segment_uri_escaped(sm, name_start, name_end);
-      append(sm, "\">");
-      append_c(sm, '@');
-      append_segment_html_escaped(sm, name_start, name_end);
-      append(sm, "</a>");
-
-      if (name_end < match_end) {
-        append_segment_html_escaped(sm, name_end + 1, match_end);
-      }
-    }
-  };
-
-  delimited_mention => {
-    if (sm->f_mentions) {
-      append(sm, "<a rel=\"nofollow\" href=\"/users?name=");
-      append_segment_uri_escaped(sm, sm->a1, sm->a2 - 1);
-      append(sm, "\">");
-      append_c(sm, '@');
-      append_segment_html_escaped(sm, sm->a1, sm->a2 - 1);
-      append(sm, "</a>");
-    }
   };
 
   newline list_item => {
@@ -1306,7 +1268,7 @@ static inline const char* find_boundary_c(const char* c) {
   return c - offset;
 }
 
-StateMachine* init_machine(const char * src, size_t len, bool f_inline, bool f_mentions, bool f_color, long f_max_thumbs) {
+StateMachine* init_machine(const char * src, size_t len, bool f_inline, bool f_color, long f_max_thumbs) {
   size_t output_length = 0;
   StateMachine* sm = (StateMachine *)g_malloc0(sizeof(StateMachine));
 
@@ -1329,7 +1291,6 @@ StateMachine* init_machine(const char * src, size_t len, bool f_inline, bool f_m
   sm->b1 = NULL;
   sm->b2 = NULL;
   sm->f_inline = f_inline;
-  sm->f_mentions = f_mentions;
   sm->allow_color = f_color;
   sm->thumbnails_left = f_max_thumbs < 0 ? 5000 : f_max_thumbs; // Cap for sanity even if "unlimited"
   sm->posts = g_array_sized_new(FALSE, TRUE, sizeof(long), 10);
@@ -1358,7 +1319,7 @@ GQuark dtext_parse_error_quark() {
 
 GString* parse_basic_inline(const char* dtext, const ssize_t length) {
     GString* output = NULL;
-    StateMachine* sm = init_machine(dtext, length, true, false, false, 0);
+    StateMachine* sm = init_machine(dtext, length, true, false, 0);
     sm->cs = dtext_en_basic_inline;
 
     if (parse_helper(sm)) {
@@ -1392,7 +1353,7 @@ gboolean parse_helper(StateMachine* sm) {
 /* Everything below is optional, it's only needed to build bin/cdtext.exe. */
 #ifdef CDTEXT
 
-static void parse_file(FILE* input, FILE* output, gboolean opt_inline, gboolean opt_mentions, gboolean opt_color) {
+static void parse_file(FILE* input, FILE* output, gboolean opt_inline, gboolean opt_color) {
   g_autofree char* dtext = NULL;
   size_t n = 0;
 
@@ -1407,7 +1368,7 @@ static void parse_file(FILE* input, FILE* output, gboolean opt_inline, gboolean 
     }
   }
 
-  StateMachine* sm = init_machine(dtext, length, opt_inline, opt_mentions, opt_color, -1);
+  StateMachine* sm = init_machine(dtext, length, opt_inline, opt_color, -1);
   if (!parse_helper(sm)) {
     fprintf(stderr, "dtext parse error: %s\n", sm->error->message);
     exit(1);
@@ -1425,11 +1386,9 @@ int main(int argc, char* argv[]) {
   GError* error = NULL;
   gboolean opt_verbose = FALSE;
   gboolean opt_inline = FALSE;
-  gboolean opt_no_mentions = FALSE;
   gboolean opt_allow_color = FALSE;
 
   GOptionEntry options[] = {
-    { "no-mentions", 'm', 0, G_OPTION_ARG_NONE, &opt_no_mentions, "Don't parse @mentions", NULL },
     { "allow-color", 'c', 0, G_OPTION_ARG_NONE, &opt_allow_color, "Allow color", NULL },
     { "inline",      'i', 0, G_OPTION_ARG_NONE, &opt_inline,      "Parse in inline mode", NULL },
     { "verbose",     'v', 0, G_OPTION_ARG_NONE, &opt_verbose,     "Print debug output", NULL },
@@ -1453,7 +1412,7 @@ int main(int argc, char* argv[]) {
   argc--, argv++;
 
   if (argc == 0) {
-    parse_file(stdin, stdout, opt_inline, !opt_no_mentions, opt_allow_color);
+    parse_file(stdin, stdout, opt_inline, opt_allow_color);
     return 0;
   }
 
@@ -1464,7 +1423,7 @@ int main(int argc, char* argv[]) {
       return 1;
     }
 
-    parse_file(input, stdout, opt_inline, !opt_no_mentions, opt_allow_color);
+    parse_file(input, stdout, opt_inline, opt_allow_color);
     fclose(input);
   }
 

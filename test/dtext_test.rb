@@ -56,7 +56,6 @@ test2[/ltable]
   def test_relative_urls
     assert_parse('<p><a class="dtext-link dtext-id-link dtext-post-id-link" href="http://danbooru.donmai.us/posts/1234">post #1234</a></p>', "post #1234", base_url: "http://danbooru.donmai.us")
     assert_parse('<p><a rel="nofollow" class="dtext-link" href="http://danbooru.donmai.us/posts">posts</a></p>', '"posts":/posts', base_url: "http://danbooru.donmai.us")
-    assert_parse('<p><a rel="nofollow" href="http://danbooru.donmai.us/users?name=evazion">@evazion</a></p>', "@evazion", base_url: "http://danbooru.donmai.us")
   end
 
   def test_thumbnails
@@ -71,19 +70,6 @@ test2[/ltable]
     assert_parse(nil, nil)
     assert_parse("", "")
     assert_raises(TypeError) { DTextRagel.parse(42) }
-  end
-
-  def test_mentions
-    assert_parse('<p><a rel="nofollow" href="/users?name=bob">@bob</a></p>', "@bob")
-    assert_parse('<p>hi <a rel="nofollow" href="/users?name=bob">@bob</a></p>', "hi @bob")
-    assert_parse('<p>this is not @.@ @_@ <a rel="nofollow" href="/users?name=bob">@bob</a></p>', "this is not @.@ @_@ @bob")
-    assert_parse('<p>this is an email@address.com and should not trigger</p>', "this is an email@address.com and should not trigger")
-    assert_parse('<p>multiple <a rel="nofollow" href="/users?name=bob">@bob</a> <a rel="nofollow" href="/users?name=anna">@anna</a></p>', "multiple @bob @anna")
-    assert_equal('<p>hi @bob</p>', DTextRagel.parse("hi @bob", :disable_mentions => true)[0])
-  end
-
-  def test_nested_nonmention
-    assert_parse('<p>foo <strong>idolm@ster</strong> bar</p>', 'foo [b]idolm@ster[/b] bar')
   end
 
   def test_sanitize_heart
@@ -430,7 +416,7 @@ test2[/ltable]
   end
 
   def test_boundary_exploit
-    assert_parse('<p><a rel="nofollow" href="/users?name=mack">@mack</a>&lt;</p>', "@mack<")
+    assert_parse('<p>@mack&lt;</p>', "@mack<")
   end
 
   def test_expand
@@ -455,22 +441,6 @@ test2[/ltable]
 
   def test_old_asterisks
     assert_parse("<p>hello *world* neutral</p>", "hello *world* neutral")
-  end
-
-  def test_utf8_mentions
-    assert_parse('<p><a rel="nofollow" href="/users?name=葉月">@葉月</a></p>', "@葉月")
-    assert_parse('<p>Hello <a rel="nofollow" href="/users?name=葉月">@葉月</a> and <a rel="nofollow" href="/users?name=Alice">@Alice</a></p>', "Hello @葉月 and @Alice")
-    assert_parse('<p>Should not parse 葉月@葉月</p>', "Should not parse 葉月@葉月")
-  end
-
-  def test_mention_boundaries
-    assert_parse('<p>「hi <a rel="nofollow" href="/users?name=葉月">@葉月</a>」</p>', "「hi @葉月」")
-  end
-
-  def test_delimited_mentions
-    dtext = '(blah <@evazion>).'
-    html = '<p>(blah <a rel="nofollow" href="/users?name=evazion">@evazion</a>).</p>'
-    assert_parse(html, dtext)
   end
 
   def test_utf8_links

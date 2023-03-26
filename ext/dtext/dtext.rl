@@ -503,9 +503,7 @@ inline := |*
     g_debug("inline newline2");
     g_debug("  return");
 
-    if (sm->list_mode) {
-      dstack_close_list(sm);
-    }
+    dstack_close_list(sm);
 
     fexec sm->ts;
     fret;
@@ -524,7 +522,7 @@ inline := |*
   };
 
   '\r' => {
-    append_c(sm, ' ');
+    append_c_html_escaped(sm, ' ');
   };
 
   any => {
@@ -635,23 +633,17 @@ list := |*
     int prev_nest = sm->list_nest;
     append_closing_p_if(sm);
     g_debug("list start");
-    sm->list_mode = true;
     sm->list_nest = sm->a2 - sm->a1;
     fexec sm->b1;
 
     if (sm->list_nest > prev_nest) {
-      int i=0;
-      for (i=prev_nest; i<sm->list_nest; ++i) {
+      for (int i = prev_nest; i < sm->list_nest; ++i) {
         dstack_open_block(sm, BLOCK_UL, "<ul>");
       }
     } else if (sm->list_nest < prev_nest) {
-      int i=0;
-      for (i=sm->list_nest; i<prev_nest; ++i) {
+      for (int i = sm->list_nest; i < prev_nest; ++i) {
         if (dstack_check(sm, BLOCK_UL)) {
-          g_debug("  dstack pop");
-          g_debug("  print </ul>");
-          dstack_pop(sm);
-          append_block(sm, "</ul>");
+          dstack_rewind(sm);
         }
       }
     }
@@ -864,7 +856,6 @@ main := |*
     g_debug("block list");
     g_debug("  call list");
     sm->list_nest = 0;
-    sm->list_mode = true;
     append_closing_p_if(sm);
     fexec sm->ts;
     fcall list;
@@ -876,7 +867,7 @@ main := |*
     if (sm->header_mode) {
       sm->header_mode = false;
       dstack_rewind(sm);
-    } else if (sm->list_mode) {
+    } else if (sm->list_nest) {
       dstack_close_list(sm);
     } else {
       dstack_close_before_block(sm);
@@ -935,10 +926,6 @@ static inline bool dstack_is_open(const StateMachine * sm, element_t element) {
 
 static inline void append(StateMachine * sm, const char * s) {
   sm->output = g_string_append(sm->output, s);
-}
-
-static inline void append_c(StateMachine * sm, char s) {
-  sm->output = g_string_append_c(sm->output, s);
 }
 
 static inline void append_c_html_escaped(StateMachine * sm, char s) {
@@ -1155,6 +1142,7 @@ static bool dstack_close_block(StateMachine * sm, element_t type, const char * c
   }
 }
 
+// Close the last open tag.
 static void dstack_rewind(StateMachine * sm) {
   element_t element = dstack_pop(sm);
 
@@ -1197,20 +1185,15 @@ static void dstack_rewind(StateMachine * sm) {
   }
 }
 
+// Close the last open paragraph or list, if there is one.
 static void dstack_close_before_block(StateMachine * sm) {
-  while (1) {
-    if (dstack_check(sm, BLOCK_P)) {
-      dstack_pop(sm);
-      append_closing_p(sm);
-    } else if (dstack_check(sm, BLOCK_LI) || dstack_check(sm, BLOCK_UL)) {
-      dstack_rewind(sm);
-    } else {
-      return;
-    }
+  while (dstack_check(sm, BLOCK_P) || dstack_check(sm, BLOCK_LI) || dstack_check(sm, BLOCK_UL)) {
+    dstack_rewind(sm);
   }
 }
 
-static void dstack_close(StateMachine * sm) {
+// Close all remaining open tags.
+static void dstack_close_all(StateMachine * sm) {
   while (!g_queue_is_empty(sm->dstack)) {
     dstack_rewind(sm);
   }
@@ -1230,7 +1213,6 @@ static void dstack_close_list(StateMachine * sm) {
     dstack_rewind(sm);
   }
 
-  sm->list_mode = false;
   sm->list_nest = 0;
 }
 
@@ -1265,8 +1247,12 @@ static inline const char* find_boundary_c(const char* c) {
 }
 
 StateMachine* init_machine(const char * src, size_t len, bool f_inline, bool f_color, long f_max_thumbs) {
-  size_t output_length = 0;
   StateMachine* sm = (StateMachine *)g_malloc0(sizeof(StateMachine));
+
+  size_t output_length = len;
+  if (output_length < (INT16_MAX / 2)) {
+    output_length *= 2;
+  }
 
   sm->p = src;
   sm->pb = sm->p;
@@ -1277,10 +1263,6 @@ StateMachine* init_machine(const char * src, size_t len, bool f_inline, bool f_c
   sm->cs = dtext_start;
   sm->act = 0;
   sm->top = 0;
-  output_length = len;
-  if (output_length < (INT16_MAX / 2)) {
-    output_length *= 2;
-  }
   sm->output = g_string_sized_new(output_length);
   sm->a1 = NULL;
   sm->a2 = NULL;
@@ -1294,7 +1276,6 @@ StateMachine* init_machine(const char * src, size_t len, bool f_inline, bool f_c
   sm->dstack = g_queue_new();
   sm->error = NULL;
   sm->list_nest = 0;
-  sm->list_mode = false;
   sm->header_mode = false;
 
   return sm;
@@ -1341,7 +1322,7 @@ gboolean parse_helper(StateMachine* sm) {
   %% write init nocs;
   %% write exec;
 
-  dstack_close(sm);
+  dstack_close_all(sm);
 
   return sm->error == NULL;
 }

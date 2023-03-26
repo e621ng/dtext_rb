@@ -43,7 +43,6 @@ typedef enum element_t {
   BLOCK_H4 = 26,
   BLOCK_H5 = 27,
   BLOCK_H6 = 28,
-  BLOCK_STRIP = 30,
   INLINE_SUP = 31,
   INLINE_SUB = 32,
   INLINE_COLOR = 33
@@ -185,20 +184,20 @@ basic_inline := |*
 
 inline := |*
   '\\`' => {
-    append(sm, true, "`");
+    append(sm, "`");
   };
 
   '`' => {
-    append(sm, true, "<span class=\"inline-code\">");
+    append(sm, "<span class=\"inline-code\">");
     fcall inline_code;
   };
 
   internal_anchor => {
-    append(sm, true, "<a id=\"");
+    append(sm, "<a id=\"");
     g_autofree gchar* lowercased_tag = g_utf8_strdown(sm->a1, sm->a2-sm->a1);
     const size_t tag_len = sm->a2 - sm->a1;
     append_segment_uri_escaped(sm, lowercased_tag, lowercased_tag + tag_len -1);
-    append(sm, true, "\"></a>");
+    append(sm, "\"></a>");
   };
 
   thumb_id => {
@@ -206,14 +205,14 @@ inline := |*
       long post_id = strtol(sm->a1, (char**)&sm->a2, 10);
       g_array_append_val(sm->posts, post_id);
       sm->thumbnails_left -= 1;
-      append(sm, true, "<a class=\"dtext-link dtext-id-link dtext-post-id-link thumb-placeholder-link\" data-id=\"");
+      append(sm, "<a class=\"dtext-link dtext-id-link dtext-post-id-link thumb-placeholder-link\" data-id=\"");
       append_segment_html_escaped(sm, sm->a1, sm->a2 - 1);
-      append(sm, true, "\" href=\"/posts/");
+      append(sm, "\" href=\"/posts/");
       append_segment_uri_escaped(sm, sm->a1, sm->a2 -1);
-      append(sm, true, "\">");
-      append(sm, false, "post #");
+      append(sm, "\">");
+      append(sm, "post #");
       append_segment_html_escaped(sm, sm->a1, sm->a2 - 1);
-      append(sm, true, "</a>");
+      append(sm, "</a>");
     } else {
       append_id_link(sm, "post", "post", "/posts/");
     }
@@ -313,12 +312,12 @@ inline := |*
       const char* name_start = sm->a1;
       const char* name_end = find_boundary_c(match_end);
 
-      append(sm, true, "<a rel=\"nofollow\" href=\"/users?name=");
+      append(sm, "<a rel=\"nofollow\" href=\"/users?name=");
       append_segment_uri_escaped(sm, name_start, name_end);
-      append(sm, true, "\">");
+      append(sm, "\">");
       append_c(sm, '@');
       append_segment_html_escaped(sm, name_start, name_end);
-      append(sm, true, "</a>");
+      append(sm, "</a>");
 
       if (name_end < match_end) {
         append_segment_html_escaped(sm, name_end + 1, match_end);
@@ -328,12 +327,12 @@ inline := |*
 
   delimited_mention => {
     if (sm->f_mentions) {
-      append(sm, true, "<a rel=\"nofollow\" href=\"/users?name=");
+      append(sm, "<a rel=\"nofollow\" href=\"/users?name=");
       append_segment_uri_escaped(sm, sm->a1, sm->a2 - 1);
-      append(sm, true, "\">");
+      append(sm, "\">");
       append_c(sm, '@');
       append_segment_html_escaped(sm, sm->a1, sm->a2 - 1);
-      append(sm, true, "</a>");
+      append(sm, "</a>");
     }
   };
 
@@ -387,23 +386,23 @@ inline := |*
     if(!sm->allow_color)
       fret;
     dstack_push(sm, INLINE_COLOR);
-    append(sm, true, "<span class=\"dtext-color-");
+    append(sm, "<span class=\"dtext-color-");
     append_segment_uri_escaped(sm, sm->a1, sm->a2-1);
-    append(sm, true, "\">");
+    append(sm, "\">");
   };
 
   color_open => {
     if(!sm->allow_color)
       fret;
     dstack_push(sm, INLINE_COLOR);
-    append(sm, true, "<span class=\"dtext-color\" style=\"color:");
+    append(sm, "<span class=\"dtext-color\" style=\"color:");
     if(sm->a1[0] == '#') {
-      append(sm, true, "#");
+      append(sm, "#");
       append_segment_uri_escaped(sm, sm->a1 + 1, sm->a2-1);
     } else {
       append_segment_uri_escaped(sm, sm->a1, sm->a2-1);
     }
-    append(sm, true, "\">");
+    append(sm, "\">");
   };
 
   color_close => {
@@ -567,10 +566,8 @@ inline := |*
       sm->header_mode = false;
       dstack_rewind(sm);
       fret;
-    } else if (sm->f_strip) {
-      append_c(sm, ' ');
     } else {
-      append(sm, true, "<br>");
+      append(sm, "<br>");
     }
   };
 
@@ -586,11 +583,11 @@ inline := |*
 
 inline_code := |*
   '\\`' => {
-    append(sm, true, "`");
+    append(sm, "`");
   };
 
   '`' => {
-    append(sm, true, "</span>");
+    append(sm, "</span>");
     fret;
   };
 
@@ -604,7 +601,7 @@ code := |*
     if (dstack_check(sm, BLOCK_CODE)) {
       dstack_rewind(sm);
     } else {
-      append(sm, true, "[/code]");
+      append(sm, "[/code]");
     }
     fret;
   };
@@ -628,7 +625,7 @@ nodtext := |*
       fret;
     } else {
       g_debug("else dstack check");
-      append(sm, true, "[/nodtext]");
+      append(sm, "[/nodtext]");
     }
   };
 
@@ -732,11 +729,11 @@ list := |*
 
 main := |*
   '\\`' => {
-    append(sm, true, "`");
+    append(sm, "`");
   };
 
   '`' => {
-    append(sm, true, "<span class=\"inline-code\">");
+    append(sm, "<span class=\"inline-code\">");
     fcall inline_code;
   };
 
@@ -749,54 +746,48 @@ main := |*
       header = '6';
     }
 
-    if (sm->f_strip) {
-      dstack_push(sm, BLOCK_STRIP);
-    }
+    switch (header) {
+      case '1':
+        dstack_push(sm, BLOCK_H1);
+        append_block(sm, "<h1 id=\"");
+        append_block(sm, id_name->str);
+        append_block(sm, "\">");
+        break;
 
-    if (!sm->f_strip) {
-      switch (header) {
-        case '1':
-          dstack_push(sm, BLOCK_H1);
-          append_block(sm, "<h1 id=\"");
-          append_block(sm, id_name->str);
-          append_block(sm, "\">");
-          break;
+      case '2':
+        dstack_push(sm, BLOCK_H2);
+        append_block(sm, "<h2 id=\"");
+        append_block(sm, id_name->str);
+        append_block(sm, "\">");
+        break;
 
-        case '2':
-          dstack_push(sm, BLOCK_H2);
-          append_block(sm, "<h2 id=\"");
-          append_block(sm, id_name->str);
-          append_block(sm, "\">");
-          break;
+      case '3':
+        dstack_push(sm, BLOCK_H3);
+        append_block(sm, "<h3 id=\"");
+        append_block(sm, id_name->str);
+        append_block(sm, "\">");
+        break;
 
-        case '3':
-          dstack_push(sm, BLOCK_H3);
-          append_block(sm, "<h3 id=\"");
-          append_block(sm, id_name->str);
-          append_block(sm, "\">");
-          break;
+      case '4':
+        dstack_push(sm, BLOCK_H4);
+        append_block(sm, "<h4 id=\"");
+        append_block(sm, id_name->str);
+        append_block(sm, "\">");
+        break;
 
-        case '4':
-          dstack_push(sm, BLOCK_H4);
-          append_block(sm, "<h4 id=\"");
-          append_block(sm, id_name->str);
-          append_block(sm, "\">");
-          break;
+      case '5':
+        dstack_push(sm, BLOCK_H5);
+        append_block(sm, "<h5 id=\"");
+        append_block(sm, id_name->str);
+        append_block(sm, "\">");
+        break;
 
-        case '5':
-          dstack_push(sm, BLOCK_H5);
-          append_block(sm, "<h5 id=\"");
-          append_block(sm, id_name->str);
-          append_block(sm, "\">");
-          break;
-
-        case '6':
-          dstack_push(sm, BLOCK_H6);
-          append_block(sm, "<h6 id=\"");
-          append_block(sm, id_name->str);
-          append_block(sm, "\">");
-          break;
-      }
+      case '6':
+        dstack_push(sm, BLOCK_H6);
+        append_block(sm, "<h6 id=\"");
+        append_block(sm, id_name->str);
+        append_block(sm, "\">");
+        break;
     }
 
     sm->header_mode = true;
@@ -810,42 +801,36 @@ main := |*
       header = '6';
     }
 
-    if (sm->f_strip) {
-      dstack_push(sm, BLOCK_STRIP);
-    }
+    switch (header) {
+      case '1':
+        dstack_push(sm, BLOCK_H1);
+        append_block(sm, "<h1>");
+        break;
 
-    if (!sm->f_strip) {
-      switch (header) {
-        case '1':
-          dstack_push(sm, BLOCK_H1);
-          append_block(sm, "<h1>");
-          break;
+      case '2':
+        dstack_push(sm, BLOCK_H2);
+        append_block(sm, "<h2>");
+        break;
 
-        case '2':
-          dstack_push(sm, BLOCK_H2);
-          append_block(sm, "<h2>");
-          break;
+      case '3':
+        dstack_push(sm, BLOCK_H3);
+        append_block(sm, "<h3>");
+        break;
 
-        case '3':
-          dstack_push(sm, BLOCK_H3);
-          append_block(sm, "<h3>");
-          break;
+      case '4':
+        dstack_push(sm, BLOCK_H4);
+        append_block(sm, "<h4>");
+        break;
 
-        case '4':
-          dstack_push(sm, BLOCK_H4);
-          append_block(sm, "<h4>");
-          break;
+      case '5':
+        dstack_push(sm, BLOCK_H5);
+        append_block(sm, "<h5>");
+        break;
 
-        case '5':
-          dstack_push(sm, BLOCK_H5);
-          append_block(sm, "<h5>");
-          break;
-
-        case '6':
-          dstack_push(sm, BLOCK_H6);
-          append_block(sm, "<h6>");
-          break;
-      }
+      case '6':
+        dstack_push(sm, BLOCK_H6);
+        append_block(sm, "<h6>");
+        break;
     }
 
     sm->header_mode = true;
@@ -898,9 +883,9 @@ main := |*
     dstack_close_before_block(sm);
     dstack_push(sm, BLOCK_SECTION);
     append_block(sm, "<div class=\"expandable\"><div class=\"expandable-header\"><span class=\"section-arrow\"></span>");
-    append(sm, true, "<span>");
+    append(sm, "<span>");
     append_segment_html_escaped(sm, sm->a1, sm->a2 - 1);
-    append(sm, true, "</span>");
+    append(sm, "</span>");
     append_block(sm, "</div>");
     append_block(sm, "<div class=\"expandable-content\">");
   };
@@ -910,9 +895,9 @@ main := |*
     dstack_close_before_block(sm);
     dstack_push(sm, BLOCK_SECTION);
     append_block(sm, "<div class=\"expandable expanded\"><div class=\"expandable-header\"><span class=\"section-arrow expanded\"></span>");
-    append(sm, true, "<span>");
+    append(sm, "<span>");
     append_segment_html_escaped(sm, sm->a1, sm->a2 - 1);
-    append(sm, true, "</span>");
+    append(sm, "</span>");
     append_block(sm, "</div>");
     append_block(sm, "<div class=\"expandable-content\">");
   };
@@ -1009,10 +994,8 @@ static inline bool dstack_check2(const StateMachine * sm, element_t expected_ele
   return top2 == expected_element;
 }
 
-static inline void append(StateMachine * sm, bool is_markup, const char * s) {
-  if (!is_markup || !sm->f_strip) {
-    sm->output = g_string_append(sm->output, s);
-  }
+static inline void append(StateMachine * sm, const char * s) {
+  sm->output = g_string_append(sm->output, s);
 }
 
 static inline void append_c(StateMachine * sm, char s) {
@@ -1043,17 +1026,11 @@ static inline void append_c_html_escaped(StateMachine * sm, char s) {
   }
 }
 
-static inline void append_segment(StateMachine * sm, bool is_markup, const char * a, const char * b) {
-  if (!(is_markup && sm->f_strip)) {
-    sm->output = g_string_append_len(sm->output, a, b - a + 1);
-  }
+static inline void append_segment(StateMachine * sm, const char * a, const char * b) {
+  sm->output = g_string_append_len(sm->output, a, b - a + 1);
 }
 
 static inline void append_segment_uri_escaped(StateMachine * sm, const char * a, const char * b) {
-  if (sm->f_strip) {
-    return;
-  }
-
   g_autofree char * segment1 = NULL;
   g_autofree char * segment2 = NULL;
   g_autoptr(GString) segment_string = g_string_new_len(a, b - a + 1);
@@ -1064,10 +1041,6 @@ static inline void append_segment_uri_escaped(StateMachine * sm, const char * a,
 }
 
 static inline void append_segment_uri_possible_fragment_escaped(StateMachine * sm, const char * a, const char * b) {
-  if (sm->f_strip) {
-    return;
-  }
-
   g_autofree char * segment1 = NULL;
   g_autofree char * segment2 = NULL;
   g_autoptr(GString) segment_string = g_string_new_len(a, b - a + 1);
@@ -1083,49 +1056,43 @@ static inline void append_segment_html_escaped(StateMachine * sm, const char * a
 }
 
 static inline void append_id_link(StateMachine * sm, const char * title, const char * id_name, const char * url) {
-  append(sm, true, "<a class=\"dtext-link dtext-id-link dtext-");
-  append(sm, true, id_name);
-  append(sm, true, "-id-link\" href=\"");
-  append(sm, true, url);
+  append(sm, "<a class=\"dtext-link dtext-id-link dtext-");
+  append(sm, id_name);
+  append(sm, "-id-link\" href=\"");
+  append(sm, url);
   append_segment_uri_escaped(sm, sm->a1, sm->a2 - 1);
-  append(sm, true, "\">");
-  append(sm, false, title);
-  append(sm, false, " #");
+  append(sm, "\">");
+  append(sm, title);
+  append(sm, " #");
   append_segment_html_escaped(sm, sm->a1, sm->a2 - 1);
-  append(sm, true, "</a>");
+  append(sm, "</a>");
 }
 
 static inline void append_url(StateMachine * sm, const char * url_start, const char * url_end, const char * title_start, const char * title_end) {
-  append(sm, true, "<a rel=\"nofollow\" class=\"dtext-link\" href=\"");
+  append(sm, "<a rel=\"nofollow\" class=\"dtext-link\" href=\"");
   append_segment_html_escaped(sm, url_start, url_end);
-  append(sm, true, "\">");
-  if (sm->f_strip) {
-    append_c(sm, ' ');
-  }
+  append(sm, "\">");
   append_segment_html_escaped(sm, title_start, title_end);
-  append(sm, true, "</a>");
+  append(sm, "</a>");
 }
 
 static inline bool append_named_url(StateMachine * sm, const char * url_start, const char * url_end, const char * title_start, const char * title_end) {
-  g_autoptr(GString) parsed_title = parse_basic_inline(title_start, title_end - title_start, sm->f_strip);
+  g_autoptr(GString) parsed_title = parse_basic_inline(title_start, title_end - title_start);
 
   if (!parsed_title) {
     return false;
   }
 
   if (url_start[0] == '/' || url_start[0] == '#') {
-    append(sm, true, "<a rel=\"nofollow\" class=\"dtext-link\" href=\"");
+    append(sm, "<a rel=\"nofollow\" class=\"dtext-link\" href=\"");
   } else {
-    append(sm, true, "<a rel=\"nofollow\" class=\"dtext-link dtext-external-link\" href=\"");
+    append(sm, "<a rel=\"nofollow\" class=\"dtext-link dtext-external-link\" href=\"");
   }
 
   append_segment_html_escaped(sm, url_start, url_end);
-  append(sm, true, "\">");
-  if (sm->f_strip) {
-    append_c(sm, ' ');
-  }
-  append_segment(sm, false, parsed_title->str, parsed_title->str + parsed_title->len - 1);
-  append(sm, true, "</a>");
+  append(sm, "\">");
+  append_segment(sm, parsed_title->str, parsed_title->str + parsed_title->len - 1);
+  append(sm, "</a>");
 
   return true;
 }
@@ -1135,49 +1102,45 @@ static inline void append_wiki_link(StateMachine * sm, const char * tag, const s
   g_autoptr(GString) normalized_tag = g_string_new(g_strdelimit(lowercased_tag, " ", '_'));
 
   if (tag[0] == '#') {
-    append(sm, true, "<a rel=\"nofollow\" class=\"dtext-link dtext-wiki-link\" href=\"#");
+    append(sm, "<a rel=\"nofollow\" class=\"dtext-link dtext-wiki-link\" href=\"#");
     append_segment_uri_escaped(sm, lowercased_tag+1, lowercased_tag + tag_len - 1);
-    append(sm, true, "\">");
+    append(sm, "\">");
   } else {
-    append(sm, true, "<a rel=\"nofollow\" class=\"dtext-link dtext-wiki-link\" href=\"/wiki_pages/show_or_new?title=");
+    append(sm, "<a rel=\"nofollow\" class=\"dtext-link dtext-wiki-link\" href=\"/wiki_pages/show_or_new?title=");
     append_segment_uri_possible_fragment_escaped(sm, normalized_tag->str, normalized_tag->str + normalized_tag->len - 1);
-    append(sm, true, "\">");
+    append(sm, "\">");
   }
   append_segment_html_escaped(sm, title, title + title_len - 1);
-  append(sm, true, "</a>");
+  append(sm, "</a>");
 }
 
 static inline void append_post_search_link(StateMachine * sm, const char * tag, const size_t tag_len, const char * title, const size_t title_len) {
   g_autofree gchar* lowercased_tag = g_utf8_strdown(tag, tag_len);
   g_autoptr(GString) normalized_tag = g_string_new(lowercased_tag);
 
-  append(sm, true, "<a rel=\"nofollow\" class=\"dtext-link dtext-post-search-link\" href=\"/posts?tags=");
+  append(sm, "<a rel=\"nofollow\" class=\"dtext-link dtext-post-search-link\" href=\"/posts?tags=");
   append_segment_uri_escaped(sm, normalized_tag->str, normalized_tag->str + normalized_tag->len - 1);
-  append(sm, true, "\">");
+  append(sm, "\">");
   append_segment_html_escaped(sm, title, title + title_len - 1);
-  append(sm, true, "</a>");
+  append(sm, "</a>");
 }
 
 static inline void append_paged_link(StateMachine * sm, const char * title, const char * ahref, const char * param) {
-  append(sm, true, ahref);
-  append_segment(sm, true, sm->a1, sm->a2 - 1);
-  append(sm, true, param);
-  append_segment(sm, true, sm->b1, sm->b2 - 1);
-  append(sm, true, "\">");
-  append(sm, false, title);
-  append_segment(sm, false, sm->a1, sm->a2 - 1);
-  append(sm, false, "/p");
-  append_segment(sm, false, sm->b1, sm->b2 - 1);
-  append(sm, true, "</a>");
+  append(sm, ahref);
+  append_segment(sm, sm->a1, sm->a2 - 1);
+  append(sm, param);
+  append_segment(sm, sm->b1, sm->b2 - 1);
+  append(sm, "\">");
+  append(sm, title);
+  append_segment(sm, sm->a1, sm->a2 - 1);
+  append(sm, "/p");
+  append_segment(sm, sm->b1, sm->b2 - 1);
+  append(sm, "</a>");
 }
 
 static inline void append_block_segment(StateMachine * sm, const char * a, const char * b) {
   if (sm->f_inline) {
     // sm->output = g_string_append_c(sm->output, ' ');
-  } else if (sm->f_strip) {
-    if (sm->output->len > 0 && sm->output->str[sm->output->len-1] != ' ') {
-      append_c(sm, ' ');
-    }
   } else {
     sm->output = g_string_append_len(sm->output, a, b - a + 1);
   }
@@ -1215,7 +1178,7 @@ static void dstack_open_inline(StateMachine * sm, element_t type, const char * h
   g_debug("push inline element [%d]: %s", type, html);
 
   dstack_push(sm, type);
-  append(sm, true, html);
+  append(sm, html);
 }
 
 static void dstack_open_block(StateMachine * sm, element_t type, const char * html) {
@@ -1230,11 +1193,11 @@ static void dstack_close_inline(StateMachine * sm, element_t type, const char * 
     g_debug("pop inline element [%d]: %s", type, close_html);
 
     dstack_pop(sm);
-    append(sm, true, close_html);
+    append(sm, close_html);
   } else {
     g_debug("ignored out-of-order closing inline tag [%d]", type);
 
-    append_segment(sm, true, sm->ts, sm->te - 1); // XXX should be false?
+    append_segment(sm, sm->ts, sm->te - 1);
   }
 }
 
@@ -1258,7 +1221,7 @@ static void dstack_rewind(StateMachine * sm) {
 
   switch(element) {
     case BLOCK_P: append_closing_p(sm); break;
-    case INLINE_SPOILER: append(sm, true, "</span>"); break;
+    case INLINE_SPOILER: append(sm, "</span>"); break;
     case BLOCK_SPOILER: append_block(sm, "</div>"); break;
     case BLOCK_QUOTE: append_block(sm, "</blockquote>"); break;
     case BLOCK_SECTION: append_block(sm, "</div></div>"); break;
@@ -1268,14 +1231,14 @@ static void dstack_rewind(StateMachine * sm) {
     case BLOCK_TH: append_block(sm, "</th>"); break;
 
     case INLINE_NODTEXT: break;
-    case INLINE_B: append(sm, true, "</strong>"); break;
-    case INLINE_I: append(sm, true, "</em>"); break;
-    case INLINE_U: append(sm, true, "</u>"); break;
-    case INLINE_S: append(sm, true, "</s>"); break;
-    case INLINE_SUB: append(sm, true, "</sub>"); break;
-    case INLINE_SUP: append(sm, true, "</sup>"); break;
-    case INLINE_COLOR: append(sm, true, "</span>"); break;
-    case INLINE_TN: append(sm, true, "</span>"); break;
+    case INLINE_B: append(sm, "</strong>"); break;
+    case INLINE_I: append(sm, "</em>"); break;
+    case INLINE_U: append(sm, "</u>"); break;
+    case INLINE_S: append(sm, "</s>"); break;
+    case INLINE_SUB: append(sm, "</sub>"); break;
+    case INLINE_SUP: append(sm, "</sup>"); break;
+    case INLINE_COLOR: append(sm, "</span>"); break;
+    case INLINE_TN: append(sm, "</span>"); break;
 
     case BLOCK_TN: append_closing_p(sm); break;
     case BLOCK_TABLE: append_block(sm, "</table>"); break;
@@ -1290,7 +1253,6 @@ static void dstack_rewind(StateMachine * sm) {
     case BLOCK_H3: append_block(sm, "</h3>"); break;
     case BLOCK_H2: append_block(sm, "</h2>"); break;
     case BLOCK_H1: append_block(sm, "</h1>"); break;
-    case BLOCK_STRIP: append_c(sm, ' '); break;
 
     case QUEUE_EMPTY: break;
   }
@@ -1361,7 +1323,7 @@ static bool print_machine(StateMachine * sm) {
 }
 */
 
-StateMachine* init_machine(const char * src, size_t len, bool f_strip, bool f_inline, bool f_mentions, bool f_color, long f_max_thumbs) {
+StateMachine* init_machine(const char * src, size_t len, bool f_inline, bool f_mentions, bool f_color, long f_max_thumbs) {
   size_t output_length = 0;
   StateMachine* sm = (StateMachine *)g_malloc0(sizeof(StateMachine));
 
@@ -1384,7 +1346,6 @@ StateMachine* init_machine(const char * src, size_t len, bool f_strip, bool f_in
   sm->b1 = NULL;
   sm->b2 = NULL;
   sm->f_inline = f_inline;
-  sm->f_strip = f_strip;
   sm->f_mentions = f_mentions;
   sm->allow_color = f_color;
   sm->thumbnails_left = f_max_thumbs < 0 ? 5000 : f_max_thumbs; // Cap for sanity even if "unlimited"
@@ -1415,9 +1376,9 @@ GQuark dtext_parse_error_quark() {
   return g_quark_from_static_string("dtext-parse-error-quark");
 }
 
-GString* parse_basic_inline(const char* dtext, const ssize_t length, const bool f_strip) {
+GString* parse_basic_inline(const char* dtext, const ssize_t length) {
     GString* output = NULL;
-    StateMachine* sm = init_machine(dtext, length, f_strip, true, false, false, 0);
+    StateMachine* sm = init_machine(dtext, length, true, false, false, 0);
     sm->cs = dtext_en_basic_inline;
 
     if (parse_helper(sm)) {
@@ -1451,7 +1412,7 @@ gboolean parse_helper(StateMachine* sm) {
 /* Everything below is optional, it's only needed to build bin/cdtext.exe. */
 #ifdef CDTEXT
 
-static void parse_file(FILE* input, FILE* output, gboolean opt_strip, gboolean opt_inline, gboolean opt_mentions, gboolean opt_color) {
+static void parse_file(FILE* input, FILE* output, gboolean opt_inline, gboolean opt_mentions, gboolean opt_color) {
   g_autofree char* dtext = NULL;
   size_t n = 0;
 
@@ -1466,7 +1427,7 @@ static void parse_file(FILE* input, FILE* output, gboolean opt_strip, gboolean o
     }
   }
 
-  StateMachine* sm = init_machine(dtext, length, opt_strip, opt_inline, opt_mentions, opt_color, -1);
+  StateMachine* sm = init_machine(dtext, length, opt_inline, opt_mentions, opt_color, -1);
   if (!parse_helper(sm)) {
     fprintf(stderr, "dtext parse error: %s\n", sm->error->message);
     exit(1);
@@ -1483,7 +1444,6 @@ static void parse_file(FILE* input, FILE* output, gboolean opt_strip, gboolean o
 int main(int argc, char* argv[]) {
   GError* error = NULL;
   gboolean opt_verbose = FALSE;
-  gboolean opt_strip = FALSE;
   gboolean opt_inline = FALSE;
   gboolean opt_no_mentions = FALSE;
   gboolean opt_allow_color = FALSE;
@@ -1492,7 +1452,6 @@ int main(int argc, char* argv[]) {
     { "no-mentions", 'm', 0, G_OPTION_ARG_NONE, &opt_no_mentions, "Don't parse @mentions", NULL },
     { "allow-color", 'c', 0, G_OPTION_ARG_NONE, &opt_allow_color, "Allow color", NULL },
     { "inline",      'i', 0, G_OPTION_ARG_NONE, &opt_inline,      "Parse in inline mode", NULL },
-    { "strip",       's', 0, G_OPTION_ARG_NONE, &opt_strip,       "Strip markup", NULL },
     { "verbose",     'v', 0, G_OPTION_ARG_NONE, &opt_verbose,     "Print debug output", NULL },
     { NULL }
   };
@@ -1514,7 +1473,7 @@ int main(int argc, char* argv[]) {
   argc--, argv++;
 
   if (argc == 0) {
-    parse_file(stdin, stdout, opt_strip, opt_inline, !opt_no_mentions, opt_allow_color);
+    parse_file(stdin, stdout, opt_inline, !opt_no_mentions, opt_allow_color);
     return 0;
   }
 
@@ -1525,7 +1484,7 @@ int main(int argc, char* argv[]) {
       return 1;
     }
 
-    parse_file(input, stdout, opt_strip, opt_inline, !opt_no_mentions, opt_allow_color);
+    parse_file(input, stdout, opt_inline, !opt_no_mentions, opt_allow_color);
     fclose(input);
   }
 

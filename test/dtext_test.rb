@@ -453,15 +453,6 @@ test2[/ltable]
     assert_equal("hello", DTextRagel.parse_inline("hello")[0].strip)
   end
 
-  def test_strip
-    assert_equal("hello z wo rld ", DTextRagel.parse_strip("h[b]e[/b]llo[quote]z[/quote]wo[section]rld[/section]")[0])
-    assert_equal("this is a header a paragraph this is a list ", DTextRagel.parse_strip("h1. this is a header\n\na paragraph\n\n* this\n* is\n* a list\n")[0])
-    assert_equal("one line after the other ", DTextRagel.parse_strip("one\nline\nafter\nthe\nother")[0])
-    assert_equal("one http://google.com this is a link after ", DTextRagel.parse_strip("one \"this is a link\":http://google.com after\n")[0])
-    assert_equal("one http://google.com this is a link after ", DTextRagel.parse_strip("one \"this is a link\":[http://google.com] after\n")[0])
-    assert_equal("one wiki after ", DTextRagel.parse_strip("one [[wiki]] after\n")[0])
-  end
-
   def test_old_asterisks
     assert_parse("<p>hello *world* neutral</p>", "hello *world* neutral")
   end

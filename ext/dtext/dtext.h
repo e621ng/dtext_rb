@@ -30,7 +30,6 @@ typedef struct StateMachine {
   const char * b1;
   const char * b2;
   bool f_inline;
-  bool f_strip;
   bool f_mentions;
   bool list_mode;
   bool header_mode;
@@ -47,11 +46,11 @@ typedef struct StateMachine {
   bool allow_color;
 } StateMachine;
 
-StateMachine* init_machine(const char * src, size_t len, bool f_strip, bool f_inline, bool f_mentions, bool f_color, long f_max_thumbs);
+StateMachine* init_machine(const char * src, size_t len, bool f_inline, bool f_mentions, bool f_color, long f_max_thumbs);
 void free_machine(StateMachine * sm);
 
 gboolean parse_helper(StateMachine* sm);
-GString* parse_basic_inline(const char* dtext, const ssize_t length, const bool f_strip);
+GString* parse_basic_inline(const char* dtext, const ssize_t length);
 
 GQuark dtext_parse_error_quark();
 

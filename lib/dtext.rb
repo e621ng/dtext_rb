@@ -8,15 +8,11 @@ module DTextRagel
     parse(str, :inline => true)
   end
 
-  def self.parse_strip(str)
-    parse(str, :strip => true)
-  end
-
-  def self.parse(str, strip: false, inline: false, disable_mentions: false, allow_color: false, base_url: nil, max_thumbs: 25)
+  def self.parse(str, inline: false, disable_mentions: false, allow_color: false, base_url: nil, max_thumbs: 25)
     return nil if str.nil?
     raise TypeError unless str.respond_to?(:gsub)
     str = preprocess_for_tables(str)
-    results = c_parse(str, strip, inline, disable_mentions, allow_color, max_thumbs)
+    results = c_parse(str, inline, disable_mentions, allow_color, max_thumbs)
     results[0] = resolve_relative_urls(results[0], base_url) if base_url
     results
   end

@@ -236,6 +236,10 @@ test2[/ltable]
     assert_parse('<p>a <a rel="nofollow" class="dtext-link" href="http://test.com">http://test.com</a> b</p>', 'a http://test.com b')
   end
 
+  def test_urls_case_insensitive
+    assert_parse('<p>a <a rel="nofollow" class="dtext-link" href="Https://test.com">Https://test.com</a> b</p>', 'a Https://test.com b')
+  end
+
   def test_urls_with_newline
     assert_parse('<p><a rel="nofollow" class="dtext-link" href="http://test.com">http://test.com</a><br>b</p>', "http://test.com\nb")
   end

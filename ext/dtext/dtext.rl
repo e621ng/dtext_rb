@@ -94,14 +94,9 @@ nonpipebracket = nonpipe & nonbracket;
 noncurly = ^'}';
 nonpipecurly = nonpipe & noncurly;
 
-utf8graph = (0x00..0x7F) & graph
-          | 0xC2..0xDF 0x80..0xBF
-          | 0xE0..0xEF 0x80..0xBF 0x80..0xBF
-          | 0xF0..0xF4 0x80..0xBF 0x80..0xBF 0x80..0xBF;
-
-url = 'http'i 's'i? '://' utf8graph+;
+url = 'http'i 's'i? '://' ^space+;
 delimited_url = '<' url :>> '>';
-internal_url = [/#] utf8graph+;
+internal_url = [/#] ^space+;
 basic_textile_link = '"' nonquote+ >mark_a1 '"' >mark_a2 ':' (url | internal_url) >mark_b1 @mark_b2;
 bracketed_textile_link = '"' nonquote+ >mark_a1 '"' >mark_a2 ':[' (url | internal_url) >mark_b1 @mark_b2 :>> ']';
 

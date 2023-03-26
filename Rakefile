@@ -14,12 +14,12 @@ end
 
 Rake::ExtensionTask.new "dtext" do |ext|
   # this goes here to ensure ragel runs *before* the extension is compiled.
-  task :compile => ["ext/dtext/dtext.c", "ext/dtext/rb_dtext.c"]
+  task :compile => ["ext/dtext/dtext.cpp", "ext/dtext/rb_dtext.cpp"]
   ext.lib_dir = "lib/dtext"
 end
 
-file "ext/dtext/dtext.c" => Dir["ext/dtext/dtext.{rl,h}", "Rakefile"] do
-  sh "ragel -G1 -C ext/dtext/dtext.rl -o ext/dtext/dtext.c"
+file "ext/dtext/dtext.cpp" => Dir["ext/dtext/dtext.{cpp.rl,h}", "Rakefile"] do
+  sh "ragel -G1 -C ext/dtext/dtext.cpp.rl -o ext/dtext/dtext.cpp"
 end
 
 def run_dtext(*args)

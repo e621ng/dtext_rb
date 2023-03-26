@@ -857,11 +857,11 @@ static inline void dstack_push(StateMachine * sm, element_t element) {
 }
 
 static inline element_t dstack_pop(StateMachine * sm) {
-  return GPOINTER_TO_INT(g_queue_pop_tail(sm->dstack));
+  return (element_t)GPOINTER_TO_INT(g_queue_pop_tail(sm->dstack));
 }
 
 static inline element_t dstack_peek(const StateMachine * sm) {
-  return GPOINTER_TO_INT(g_queue_peek_tail(sm->dstack));
+  return (element_t)GPOINTER_TO_INT(g_queue_peek_tail(sm->dstack));
 }
 
 static inline bool dstack_check(const StateMachine * sm, element_t expected_element) {

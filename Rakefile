@@ -32,15 +32,31 @@ file "ext/dtext/dtext.c" => Dir["ext/dtext/dtext.{rl,h}", "Rakefile"] do
   sh "ragel -G1 -C ext/dtext/dtext.rl -o ext/dtext/dtext.c"
 end
 
+def run_dtext(*args)
+  ruby "-Ilib", "-rdtext", *args
+end
+
 task test_inline_ragel: :compile do
   Bundler.with_unbundled_env do
-    ruby '-Ilib', '-rdtext', '-e', 'puts DTextRagel.parse("hello\r\nworld")'
+    run_dtext "-e", 'puts DTextRagel.parse("hello\r\nworld")'
   end
 end
 
 task test: :compile do
   Bundler.with_unbundled_env do
-    ruby "-Ilib", '-rdtext', "test/dtext_test.rb" #, '--name=test_strip'
+    run_dtext "test/dtext_test.rb" #, '--name=test_strip'
+  end
+end
+
+task reference_compare: :compile do
+  Bundler.with_unbundled_env do
+    run_dtext "test/reference_compare.rb"
+  end
+end
+
+task reference_generate: :compile do
+  Bundler.with_unbundled_env do
+    run_dtext "test/reference_generate.rb"
   end
 end
 

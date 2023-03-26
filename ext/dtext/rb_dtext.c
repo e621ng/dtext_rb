@@ -4,8 +4,8 @@
 #include <ruby.h>
 #include <ruby/encoding.h>
 
-static VALUE mDTextRagel = Qnil;
-static VALUE mDTextRagelError = Qnil;
+static VALUE mDText = Qnil;
+static VALUE mDTextError = Qnil;
 
 static VALUE c_parse(VALUE self, VALUE input, VALUE f_inline, VALUE f_allow_color, VALUE f_max_thumbs) {
   if (NIL_P(input)) {
@@ -17,7 +17,7 @@ static VALUE c_parse(VALUE self, VALUE input, VALUE f_inline, VALUE f_allow_colo
   if (!parse_helper(sm)) {
     GError* error = g_error_copy(sm->error);
     free_machine(sm);
-    rb_raise(mDTextRagelError, "%s", error->message);
+    rb_raise(mDTextError, "%s", error->message);
   }
 
   VALUE retStr = rb_utf8_str_new(sm->output->str, sm->output->len);
@@ -36,7 +36,7 @@ static VALUE c_parse(VALUE self, VALUE input, VALUE f_inline, VALUE f_allow_colo
 }
 
 void Init_dtext() {
-  mDTextRagel = rb_define_module("DTextRagel");
-  mDTextRagelError = rb_define_class_under(mDTextRagel, "Error", rb_eStandardError);
-  rb_define_singleton_method(mDTextRagel, "c_parse", c_parse, 4);
+  mDText = rb_define_module("DText");
+  mDTextError = rb_define_class_under(mDText, "Error", rb_eStandardError);
+  rb_define_singleton_method(mDText, "c_parse", c_parse, 4);
 }

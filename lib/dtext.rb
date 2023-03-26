@@ -1,7 +1,7 @@
 require "dtext/dtext"
 require "nokogiri"
 
-module DTextRagel
+module DText
   class Error < StandardError; end
 
   def self.parse_inline(str)

@@ -38,7 +38,7 @@ end
 
 task test_inline_ragel: :compile do
   Bundler.with_unbundled_env do
-    run_dtext "-e", 'puts DTextRagel.parse("hello\r\nworld")'
+    run_dtext "-e", 'puts DText.parse("hello\r\nworld")'
   end
 end
 

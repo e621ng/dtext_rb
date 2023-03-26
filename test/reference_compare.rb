@@ -8,8 +8,8 @@ CSV.open("dtext_reference.csv", "r").each do |row|
   color_expected = row[1]
   no_color_expected = row[2]
 
-  color = DTextRagel.parse(input, allow_color: true)[0]
-  no_color = DTextRagel.parse(input, allow_color: false)[0]
+  color = DText.parse(input, allow_color: true)[0]
+  no_color = DText.parse(input, allow_color: false)[0]
   if color != color_expected
     differences << [input, color_expected, color]
   end

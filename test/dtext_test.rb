@@ -9,15 +9,15 @@ class DTextTest < Minitest::Test
   def assert_parse(expected, input, **options)
 
     if expected.nil?
-      assert_nil(str_part = DTextRagel.parse(input, **options))
+      assert_nil(str_part = DText.parse(input, **options))
     else
-      str_part = DTextRagel.parse(input, **options)[0]
+      str_part = DText.parse(input, **options)[0]
       assert_equal(expected, str_part)
     end
   end
 
   def assert_color(prefix, color)
-    str_part = DTextRagel.parse("[color=#{color}]test[/color]", allow_color: true)[0]
+    str_part = DText.parse("[color=#{color}]test[/color]", allow_color: true)[0]
     assert_equal("#{prefix}#{color}\">test</span></p>", str_part)
   end
 
@@ -59,17 +59,17 @@ test2[/ltable]
   end
 
   def test_thumbnails
-    parsed = DTextRagel.parse("thumb #123")
+    parsed = DText.parse("thumb #123")
     assert_equal(parsed[1], [123])
     assert_equal(parsed[0], "<p><a class=\"dtext-link dtext-id-link dtext-post-id-link thumb-placeholder-link\" data-id=\"123\" href=\"/posts/123\">post #123</a></p>")
-    parsed = DTextRagel.parse("thumb #123 "*10, max_thumbs: 5)
+    parsed = DText.parse("thumb #123 "*10, max_thumbs: 5)
     assert_equal(parsed[1], [123]*5)
   end
 
   def test_args
     assert_parse(nil, nil)
     assert_parse("", "")
-    assert_raises(TypeError) { DTextRagel.parse(42) }
+    assert_raises(TypeError) { DText.parse(42) }
   end
 
   def test_sanitize_heart
@@ -436,7 +436,7 @@ test2[/ltable]
   end
 
   def test_inline_mode
-    assert_equal("hello", DTextRagel.parse_inline("hello")[0].strip)
+    assert_equal("hello", DText.parse_inline("hello")[0].strip)
   end
 
   def test_old_asterisks
@@ -462,28 +462,28 @@ test2[/ltable]
   end
 
   def test_stack_depth_limit
-    assert_raises(DTextRagel::Error) { DTextRagel.parse("* foo\n" * 513) }
+    assert_raises(DText::Error) { DText.parse("* foo\n" * 513) }
   end
 
   def test_null_bytes
-    assert_raises(DTextRagel::Error) { DTextRagel.parse("foo\0bar") }
+    assert_raises(DText::Error) { DText.parse("foo\0bar") }
   end
 
   def test_wiki_link_xss
-    assert_raises(DTextRagel::Error) do
-      DTextRagel.parse("[[\xFA<script \xFA>alert(42); //\xFA</script \xFA>]]")
+    assert_raises(DText::Error) do
+      DText.parse("[[\xFA<script \xFA>alert(42); //\xFA</script \xFA>]]")
     end
   end
 
   def test_mention_xss
-    assert_raises(DTextRagel::Error) do
-      DTextRagel.parse("@user\xF4<b>xss\xFA</b>")
+    assert_raises(DText::Error) do
+      DText.parse("@user\xF4<b>xss\xFA</b>")
     end
   end
 
   def test_url_xss
-    assert_raises(DTextRagel::Error) do
-      DTextRagel.parse(%("url":/page\xF4">x\xFA<b>xss\xFA</b>))
+    assert_raises(DText::Error) do
+      DText.parse(%("url":/page\xF4">x\xFA<b>xss\xFA</b>))
     end
   end
 end

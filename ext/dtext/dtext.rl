@@ -193,10 +193,6 @@ inline := |*
     fcall inline_code;
   };
 
-  post_id => {
-    append_link(sm, "post #", "<a class=\"dtext-link dtext-id-link dtext-post-id-link\" href=\"/posts/");
-  };
-
   internal_anchor => {
     append(sm, true, "<a id=\"");
     g_autofree gchar* lowercased_tag = g_utf8_strdown(sm->a1, sm->a2-sm->a1);
@@ -219,93 +215,36 @@ inline := |*
       append_segment_html_escaped(sm, sm->a1, sm->a2 - 1);
       append(sm, true, "</a>");
     } else {
-      append_link(sm, "post #", "<a class=\"dtext-link dtext-id-link dtext-post-id-link\" href=\"/posts/");
+      append_id_link(sm, "post", "post", "/posts/");
     }
   };
 
-  post_changes_for_id => {
-    append_link(sm, "post changes #", "<a class=\"dtext-link dtext-id-link dtext-post-changes-for-id-link\" href=\"/post_versions?search[post_id]=");
-  };
-
-  post_flag_id => {
-    append_link(sm, "flag #", "<a class=\"dtext-link dtext-id-link dtext-post-flag-id-link\" href=\"/post_flags/");
-  };
-
-  note_id => {
-    append_link(sm, "note #", "<a class=\"dtext-link dtext-id-link dtext-note-id-link\" href=\"/notes/");
-  };
-
-  forum_post_id => {
-    append_link(sm, "forum #", "<a class=\"dtext-link dtext-id-link dtext-forum-post-id-link\" href=\"/forum_posts/");
-  };
-
-  forum_topic_id => {
-    append_link(sm, "topic #", "<a class=\"dtext-link dtext-id-link dtext-forum-topic-id-link\" href=\"/forum_topics/");
-  };
+  post_id => { append_id_link(sm, "post", "post", "/posts/"); };
+  post_changes_for_id => { append_id_link(sm, "post changes", "post-changes-for", "/post_versions?search[post_id]="); };
+  post_flag_id => { append_id_link(sm, "flag", "post-flag", "/post_flags/"); };
+  note_id => { append_id_link(sm, "note", "note", "/notes/"); };
+  forum_post_id => { append_id_link(sm, "forum", "forum-post", "/forum_posts/"); };
+  forum_topic_id => { append_id_link(sm, "topic", "forum-topic", "/forum_topics/"); };
 
   forum_topic_paged_id => {
     append_paged_link(sm, "topic #", "<a class=\"dtext-link dtext-id-link dtext-forum-topic-id-link\" href=\"/forum_topics/", "?page=");
   };
 
-  comment_id => {
-    append_link(sm, "comment #", "<a class=\"dtext-link dtext-id-link dtext-comment-id-link\" href=\"/comments/");
-  };
-
-  pool_id => {
-    append_link(sm, "pool #", "<a class=\"dtext-link dtext-id-link dtext-pool-id-link\" href=\"/pools/");
-  };
-
-  user_id => {
-    append_link(sm, "user #", "<a class=\"dtext-link dtext-id-link dtext-user-id-link\" href=\"/users/");
-  };
-
-  artist_id => {
-    append_link(sm, "artist #", "<a class=\"dtext-link dtext-id-link dtext-artist-id-link\" href=\"/artists/");
-  };
-
-  ban_id => {
-    append_link(sm, "ban #", "<a class=\"dtext-link dtext-id-link dtext-ban-id-link\" href=\"/bans/");
-  };
-
-  bulk_update_request_id => {
-    append_link(sm, "BUR #", "<a class=\"dtext-link dtext-id-link dtext-bulk-update-request-id-link\" href=\"/bulk_update_requests/");
-  };
-
-  tag_alias_id => {
-    append_link(sm, "alias #", "<a class=\"dtext-link dtext-id-link dtext-tag-alias-id-link\" href=\"/tag_aliases/");
-  };
-
-  tag_implication_id => {
-    append_link(sm, "implication #", "<a class=\"dtext-link dtext-id-link dtext-tag-implication-id-link\" href=\"/tag_implications/");
-  };
-
-  mod_action_id => {
-    append_link(sm, "mod action #", "<a class=\"dtext-link dtext-id-link dtext-mod-action-id-link\" href=\"/mod_actions/");
-  };
-
-  user_feedback_id => {
-    append_link(sm, "record #", "<a class=\"dtext-link dtext-id-link dtext-user-feedback-id-link\" href=\"/user_feedbacks/");
-  };
-
-  wiki_page_id => {
-    append_link(sm, "wiki #", "<a class=\"dtext-link dtext-id-link dtext-wiki-page-id-link\" href=\"/wiki_pages/");
-  };
-
-  set_id => {
-    append_link(sm, "set #", "<a class=\"dtext-link dtext-id-link dtext-set-id-link\" href=\"/post_sets/");
-  };
-
-  blip_id => {
-    append_link(sm, "blip #", "<a class=\"dtext-link dtext-id-link dtext-blip-id-link\" href=\"/blips/");
-  };
-
-  ticket_id => {
-    append_link(sm, "ticket #", "<a class=\"dtext-link dtext-id-link dtext-ticket-id-link\" href=\"/tickets/");
-  };
-
-  takedown_id => {
-    append_link(sm, "takedown #", "<a class=\"dtext-link dtext-id-link dtext-takedown-id-link\" href=\"/takedowns/");
-  };
+  comment_id =>{ append_id_link(sm, "comment", "comment", "/comments/"); };
+  pool_id =>{ append_id_link(sm, "pool", "pool", "/pools/"); };
+  user_id =>{ append_id_link(sm, "user", "user", "/users/"); };
+  artist_id =>{ append_id_link(sm, "artist", "artist", "/artists/"); };
+  ban_id =>{ append_id_link(sm, "ban", "ban", "/bans/"); };
+  bulk_update_request_id =>{ append_id_link(sm, "BUR", "bulk-update-request", "/bulk_update_requests/"); };
+  tag_alias_id =>{ append_id_link(sm, "alias", "tag-alias", "/tag_aliases/"); };
+  tag_implication_id =>{ append_id_link(sm, "implication", "tag-implication", "/tag_implications/"); };
+  mod_action_id =>{ append_id_link(sm, "mod action", "mod-action", "/mod_actions/"); };
+  user_feedback_id =>{ append_id_link(sm, "record", "user-feedback", "/user_feedbacks/"); };
+  wiki_page_id =>{ append_id_link(sm, "wiki", "wiki-page", "/wiki_pages/"); };
+  set_id =>{ append_id_link(sm, "set", "set", "/post_sets/"); };
+  blip_id =>{ append_id_link(sm, "blip", "blip", "/blips/"); };
+  ticket_id =>{ append_id_link(sm, "ticket", "ticket", "/tickets/"); };
+  takedown_id =>{ append_id_link(sm, "takedown", "takedown", "/takedowns/"); };
 
   basic_post_search_link => {
     append_post_search_link(sm, sm->a1, sm->a2 - sm->a1, sm->a1, sm->a2 - sm->a1);
@@ -1143,11 +1082,15 @@ static inline void append_segment_html_escaped(StateMachine * sm, const char * a
   sm->output = g_string_append(sm->output, segment);
 }
 
-static inline void append_link(StateMachine * sm, const char * title, const char * ahref) {
-  append(sm, true, ahref);
+static inline void append_id_link(StateMachine * sm, const char * title, const char * id_name, const char * url) {
+  append(sm, true, "<a class=\"dtext-link dtext-id-link dtext-");
+  append(sm, true, id_name);
+  append(sm, true, "-id-link\" href=\"");
+  append(sm, true, url);
   append_segment_uri_escaped(sm, sm->a1, sm->a2 - 1);
   append(sm, true, "\">");
   append(sm, false, title);
+  append(sm, false, " #");
   append_segment_html_escaped(sm, sm->a1, sm->a2 - 1);
   append(sm, true, "</a>");
 }

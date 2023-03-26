@@ -39,9 +39,6 @@ typedef struct StateMachine {
   GError * error;
   GArray * posts;
   int list_nest;
-  int d;
-  int b;
-  int quote;
   int thumbnails_left;
   bool allow_color;
 } StateMachine;

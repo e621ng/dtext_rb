@@ -102,6 +102,10 @@ test2[/ltable]
     assert_parse("<p><a rel=\"nofollow\" class=\"dtext-link dtext-wiki-link\" href=\"/wiki_pages/show_or_new?title=wiki_page\">Some Text</a></p>", "[[wiki page|Some Text]]")
   end
 
+  def test_wiki_links_utf8
+    assert_parse("<p><a rel=\"nofollow\" class=\"dtext-link dtext-wiki-link\" href=\"/wiki_pages/show_or_new?title=pok%C3%A9mon\">pokémon</a></p>", "[[pokémon]]")
+  end
+
   def test_wiki_links_edge
     assert_parse("<p>[[|_|]]</p>", "[[|_|]]")
     assert_parse("<p>[[||_||]]</p>", "[[||_||]]")
@@ -263,6 +267,10 @@ test2[/ltable]
     assert_parse('<p>a <a rel="nofollow" class="dtext-link" href="http://test.com/home.html#toc">http://test.com/home.html#toc</a> b</p>', 'a http://test.com/home.html#toc b')
   end
 
+  def test_urls_with_params
+    assert_parse('<p><a rel="nofollow" class="dtext-link" href="https://test.com/?a=b&amp;c=d#abc">https://test.com/?a=b&amp;c=d#abc</a></p>', "https://test.com/?a=b&c=d#abc")
+  end
+
   def test_auto_urls
     assert_parse('<p>a <a rel="nofollow" class="dtext-link" href="http://test.com">http://test.com</a>. b</p>', 'a http://test.com. b')
   end
@@ -360,6 +368,8 @@ test2[/ltable]
 
   def test_inline_tags_special_entities
     assert_parse('<p><a rel="nofollow" class="dtext-link dtext-post-search-link" href="/posts?tags=%3C3">&lt;3</a></p>', "{{<3}}")
+    assert_parse('<p><a rel="nofollow" class="dtext-link dtext-post-search-link" href="/posts?tags=%20%22%23%26%2B%3C%3E%3F"> &quot;#&amp;+&lt;&gt;?</a></p>', '{{ "#&+<>?}}')
+    assert_parse('<p><a rel="nofollow" class="dtext-link dtext-post-search-link" href="/posts?tags=%E6%9D%B1%E6%96%B9">東方</a></p>', "{{東方}}")
   end
 
   def test_inline_tags_aliased

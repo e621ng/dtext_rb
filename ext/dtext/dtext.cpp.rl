@@ -906,28 +906,18 @@ static inline void append_segment(StateMachine * sm, const char * a, const char 
 }
 
 static inline void append_segment_uri_escaped(StateMachine * sm, const char * a, const char * b) {
-  g_autofree char * segment1 = NULL;
-  g_autofree char * segment2 = NULL;
-  g_autoptr(GString) segment_string = g_string_new_len(a, b - a + 1);
-
-  segment1 = g_uri_escape_string(segment_string->str, NULL, TRUE);
-  segment2 = g_markup_escape_text(segment1, -1);
-  sm->output = g_string_append(sm->output, segment2);
+  g_autofree char* escaped = g_uri_escape_bytes((const guint8 *)a, b - a + 1, NULL);
+  g_string_append(sm->output, escaped);
 }
 
 static inline void append_segment_uri_possible_fragment_escaped(StateMachine * sm, const char * a, const char * b) {
-  g_autofree char * segment1 = NULL;
-  g_autofree char * segment2 = NULL;
-  g_autoptr(GString) segment_string = g_string_new_len(a, b - a + 1);
-
-  segment1 = g_uri_escape_string(segment_string->str, "#", TRUE);
-  segment2 = g_markup_escape_text(segment1, -1);
-  sm->output = g_string_append(sm->output, segment2);
+  g_autofree char* escaped = g_uri_escape_bytes((const guint8 *)a, b - a + 1, "#");
+  g_string_append(sm->output, escaped);
 }
 
 static inline void append_segment_html_escaped(StateMachine * sm, const char * a, const char * b) {
   g_autofree gchar * segment = g_markup_escape_text(a, b - a + 1);
-  sm->output = g_string_append(sm->output, segment);
+  g_string_append(sm->output, segment);
 }
 
 static inline void append_url(StateMachine * sm, const char* url) {
@@ -987,6 +977,7 @@ static inline void append_wiki_link(StateMachine * sm, const char * tag, const s
   g_autofree gchar* lowercased_tag = g_utf8_strdown(tag, tag_len);
   g_autoptr(GString) normalized_tag = g_string_new(g_strdelimit(lowercased_tag, " ", '_'));
 
+  // FIXME: Take the anchor as an argument here
   if (tag[0] == '#') {
     append(sm, "<a rel=\"nofollow\" class=\"dtext-link dtext-wiki-link\" href=\"#");
     append_segment_uri_escaped(sm, lowercased_tag+1, lowercased_tag + tag_len - 1);

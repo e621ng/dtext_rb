@@ -68,6 +68,10 @@ test2[/ltable]
     assert_equal(parsed[1], [123]*5)
   end
 
+  def test_thumbails_max_count
+    assert_parse('<p><a class="dtext-link dtext-id-link dtext-post-id-link" href="/posts/1">post #1</a></p>', "thumb #1", max_thumbs: 0);
+  end
+
   def test_args
     assert_parse(nil, nil)
     assert_parse("", "")

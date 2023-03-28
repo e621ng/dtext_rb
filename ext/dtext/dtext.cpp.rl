@@ -184,10 +184,9 @@ inline := |*
   };
 
   thumb_id => {
-    if(sm->thumbnails_left > 0) {
+    if(sm->posts->len < sm->max_thumbs) {
       long post_id = strtol(sm->a1, (char**)&sm->a2, 10);
       g_array_append_val(sm->posts, post_id);
-      sm->thumbnails_left -= 1;
       append(sm, "<a class=\"dtext-link dtext-id-link dtext-post-id-link thumb-placeholder-link\" data-id=\"");
       append_segment_html_escaped(sm, sm->a1, sm->a2 - 1);
       append(sm, "\" href=\"");
@@ -1184,13 +1183,18 @@ static inline const char* find_boundary_c(const char* c) {
   return c - offset;
 }
 
-StateMachine* init_machine(const char * src, size_t len, bool f_inline, bool f_color, long f_max_thumbs) {
+StateMachine* init_machine(const char * src, size_t len) {
   StateMachine* sm = (StateMachine *)g_malloc0(sizeof(StateMachine));
 
   size_t output_length = len;
   if (output_length < (INT16_MAX / 2)) {
     output_length *= 2;
   }
+
+  sm->f_inline = FALSE;
+  sm->allow_color = FALSE;
+  sm->max_thumbs = 0;
+  sm->base_url = NULL;
 
   sm->p = src;
   sm->pb = sm->p;
@@ -1206,9 +1210,6 @@ StateMachine* init_machine(const char * src, size_t len, bool f_inline, bool f_c
   sm->a2 = NULL;
   sm->b1 = NULL;
   sm->b2 = NULL;
-  sm->f_inline = f_inline;
-  sm->allow_color = f_color;
-  sm->thumbnails_left = f_max_thumbs < 0 ? 5000 : f_max_thumbs; // Cap for sanity even if "unlimited"
   sm->posts = g_array_sized_new(FALSE, TRUE, sizeof(long), 10);
   sm->stack = g_array_sized_new(FALSE, TRUE, sizeof(int), 16);
   sm->dstack = g_queue_new();
@@ -1234,7 +1235,11 @@ GQuark dtext_parse_error_quark() {
 
 GString* parse_basic_inline(const char* dtext, const ssize_t length) {
     GString* output = NULL;
-    StateMachine* sm = init_machine(dtext, length, true, false, 0);
+    StateMachine* sm = init_machine(dtext, length);
+    sm->f_inline = true;
+    sm->allow_color = false;
+    sm->max_thumbs = 0;
+
     sm->cs = dtext_en_basic_inline;
 
     if (parse_helper(sm)) {

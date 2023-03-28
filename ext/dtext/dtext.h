@@ -15,6 +15,11 @@
 #define DTEXT_PARSE_ERROR_INVALID_UTF8 2
 
 typedef struct StateMachine {
+  bool f_inline;
+  bool allow_color;
+  int max_thumbs;
+  const char * base_url;
+
   size_t top;
   int cs;
   int act;
@@ -29,7 +34,6 @@ typedef struct StateMachine {
   const char * a2;
   const char * b1;
   const char * b2;
-  bool f_inline;
   bool list_mode;
   bool header_mode;
   GString * output;
@@ -38,12 +42,9 @@ typedef struct StateMachine {
   GError * error;
   GArray * posts;
   int list_nest;
-  int thumbnails_left;
-  bool allow_color;
-  const char * base_url;
 } StateMachine;
 
-StateMachine* init_machine(const char * src, size_t len, bool f_inline, bool f_color, long f_max_thumbs);
+StateMachine* init_machine(const char * src, size_t len);
 void free_machine(StateMachine * sm);
 
 gboolean parse_helper(StateMachine* sm);

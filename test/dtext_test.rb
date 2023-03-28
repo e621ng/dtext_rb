@@ -487,28 +487,33 @@ test2[/ltable]
   end
 
   def test_stack_depth_limit
-    assert_raises(DText::Error) { DText.parse("* foo\n" * 513) }
+    e = assert_raises(DText::Error) { DText.parse("* foo\n" * 513) }
+    assert_equal("too many nested elements", e.message)
   end
 
   def test_null_bytes
-    assert_raises(DText::Error) { DText.parse("foo\0bar") }
+    e = assert_raises(DText::Error) { DText.parse("foo\0bar") }
+    assert_equal("invalid byte sequence in UTF-8", e.message)
   end
 
   def test_wiki_link_xss
-    assert_raises(DText::Error) do
+    e = assert_raises(DText::Error) do
       DText.parse("[[\xFA<script \xFA>alert(42); //\xFA</script \xFA>]]")
     end
+    assert_equal("invalid byte sequence in UTF-8", e.message)
   end
 
   def test_mention_xss
-    assert_raises(DText::Error) do
+    e = assert_raises(DText::Error) do
       DText.parse("@user\xF4<b>xss\xFA</b>")
     end
+    assert_equal("invalid byte sequence in UTF-8", e.message)
   end
 
   def test_url_xss
-    assert_raises(DText::Error) do
+    e = assert_raises(DText::Error) do
       DText.parse(%("url":/page\xF4">x\xFA<b>xss\xFA</b>))
     end
+    assert_equal("invalid byte sequence in UTF-8", e.message)
   end
 end

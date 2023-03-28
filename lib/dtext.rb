@@ -30,7 +30,7 @@ module DText
       end
       "[table]#{rows.join('')}[/tbody][/table]"
     end
-  rescue ArgumentError
-    raise Error
+  rescue ArgumentError => e
+    raise Error.new(e.message)
   end
 end

@@ -1217,12 +1217,10 @@ std::string parse_basic_inline(const char* dtext, const ssize_t length) {
 }
 
 bool parse_helper(StateMachine* sm) {
-  const gchar* end = NULL;
-
   g_debug("start\n");
 
-  if (!g_utf8_validate(sm->pb, sm->pe - sm->pb, &end)) {
-    sm->error = "invalid utf8 starting at byte " + std::to_string(end - sm->pb + 1);
+  if (memchr(sm->pb, 0, sm->pe - sm->pb)) {
+    sm->error = "invalid byte sequence in UTF-8" ;
     return false;
   }
 

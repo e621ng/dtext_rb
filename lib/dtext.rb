@@ -3,10 +3,6 @@ require "dtext/dtext"
 module DText
   class Error < StandardError; end
 
-  def self.parse_inline(str)
-    parse(str, :inline => true)
-  end
-
   def self.parse(str, inline: false, allow_color: false, max_thumbs: 25, base_url: nil)
     return nil if str.nil?
     raise TypeError unless str.respond_to?(:gsub)

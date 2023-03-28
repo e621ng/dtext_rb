@@ -467,7 +467,7 @@ test2[/ltable]
   end
 
   def test_inline_mode
-    assert_equal("hello", DText.parse_inline("hello")[0].strip)
+    assert_equal("hello", DText.parse("hello", inline: true)[0].strip)
   end
 
   def test_old_asterisks

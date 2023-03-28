@@ -5,41 +5,14 @@
 #include <stdbool.h>
 #include <string.h>
 #include <glib.h>
+#include <algorithm>
+
+#ifndef DEBUG
+#undef g_debug
+#define g_debug(...)
+#endif
 
 static const size_t MAX_STACK_DEPTH = 512;
-
-typedef enum element_t {
-  QUEUE_EMPTY = 0,
-  BLOCK_P = 1,
-  INLINE_SPOILER = 2,
-  BLOCK_SPOILER = 3,
-  BLOCK_QUOTE = 4,
-  BLOCK_SECTION = 5,
-  BLOCK_CODE = 7,
-  BLOCK_TD = 8,
-  INLINE_B = 10,
-  INLINE_I = 11,
-  INLINE_U = 12,
-  INLINE_S = 13,
-  INLINE_TN = 14,
-  BLOCK_TN = 15,
-  BLOCK_TABLE = 16,
-  BLOCK_THEAD = 17,
-  BLOCK_TBODY = 18,
-  BLOCK_TR = 19,
-  BLOCK_UL = 20,
-  BLOCK_LI = 21,
-  BLOCK_TH = 22,
-  BLOCK_H1 = 23,
-  BLOCK_H2 = 24,
-  BLOCK_H3 = 25,
-  BLOCK_H4 = 26,
-  BLOCK_H5 = 27,
-  BLOCK_H6 = 28,
-  INLINE_SUP = 31,
-  INLINE_SUB = 32,
-  INLINE_COLOR = 33
-} element_t;
 
 %%{
 machine dtext;
@@ -52,19 +25,19 @@ variable top sm->top;
 variable ts sm->ts;
 variable te sm->te;
 variable act sm->act;
-variable stack ((int *)sm->stack->data);
+variable stack (sm->stack.data());
 
 prepush {
-  size_t len = sm->stack->len;
+  size_t len = sm->stack.size();
 
   if (len > MAX_STACK_DEPTH) {
-    g_set_error_literal(&sm->error, DTEXT_PARSE_ERROR, DTEXT_PARSE_ERROR_DEPTH_EXCEEDED, "too many nested elements");
+    sm->error = "too many nested elements";
     fbreak;
   }
 
   if (sm->top >= len) {
     g_debug("growing sm->stack %zi\n", len + 16);
-    sm->stack = g_array_set_size(sm->stack, len + 16);
+    sm->stack.resize(len + 16, 0);
   }
 }
 
@@ -184,9 +157,9 @@ inline := |*
   };
 
   thumb_id => {
-    if(sm->posts->len < sm->max_thumbs) {
+    if(sm->posts.size() < sm->max_thumbs) {
       long post_id = strtol(sm->a1, (char**)&sm->a2, 10);
-      g_array_append_val(sm->posts, post_id);
+      sm->posts.push_back(post_id);
       append(sm, "<a class=\"dtext-link dtext-id-link dtext-post-id-link thumb-placeholder-link\" data-id=\"");
       append_segment_html_escaped(sm, sm->a1, sm->a2 - 1);
       append(sm, "\" href=\"");
@@ -647,8 +620,7 @@ main := |*
 
   header_with_id => {
     char header = *sm->a1;
-    g_autoptr(GString) id_name = g_string_new_len(sm->b1, sm->b2 - sm->b1);
-    id_name = g_string_prepend(id_name, "dtext-");
+    std::string id_name = "dtext-" + std::string(sm->b1, sm->b2 - sm->b1);
 
     if (sm->f_inline) {
       header = '6';
@@ -658,42 +630,42 @@ main := |*
       case '1':
         dstack_push(sm, BLOCK_H1);
         append_block(sm, "<h1 id=\"");
-        append_block(sm, id_name->str);
+        append_block(sm, id_name.c_str());
         append_block(sm, "\">");
         break;
 
       case '2':
         dstack_push(sm, BLOCK_H2);
         append_block(sm, "<h2 id=\"");
-        append_block(sm, id_name->str);
+        append_block(sm, id_name.c_str());
         append_block(sm, "\">");
         break;
 
       case '3':
         dstack_push(sm, BLOCK_H3);
         append_block(sm, "<h3 id=\"");
-        append_block(sm, id_name->str);
+        append_block(sm, id_name.c_str());
         append_block(sm, "\">");
         break;
 
       case '4':
         dstack_push(sm, BLOCK_H4);
         append_block(sm, "<h4 id=\"");
-        append_block(sm, id_name->str);
+        append_block(sm, id_name.c_str());
         append_block(sm, "\">");
         break;
 
       case '5':
         dstack_push(sm, BLOCK_H5);
         append_block(sm, "<h5 id=\"");
-        append_block(sm, id_name->str);
+        append_block(sm, id_name.c_str());
         append_block(sm, "\">");
         break;
 
       case '6':
         dstack_push(sm, BLOCK_H6);
         append_block(sm, "<h6 id=\"");
-        append_block(sm, id_name->str);
+        append_block(sm, id_name.c_str());
         append_block(sm, "\">");
         break;
     }
@@ -839,7 +811,7 @@ main := |*
     g_debug("block char: %c", fc);
     fhold;
 
-    if (g_queue_is_empty(sm->dstack) || dstack_check(sm, BLOCK_QUOTE) || dstack_check(sm, BLOCK_SPOILER) || dstack_check(sm, BLOCK_SECTION)) {
+    if (sm->dstack.empty() || dstack_check(sm, BLOCK_QUOTE) || dstack_check(sm, BLOCK_SPOILER) || dstack_check(sm, BLOCK_SECTION)) {
       dstack_open_block(sm, BLOCK_P, "<p>");
     }
 
@@ -852,15 +824,22 @@ main := |*
 %% write data;
 
 static inline void dstack_push(StateMachine * sm, element_t element) {
-  g_queue_push_tail(sm->dstack, GINT_TO_POINTER(element));
+  sm->dstack.push_back(element);
 }
 
 static inline element_t dstack_pop(StateMachine * sm) {
-  return (element_t)GPOINTER_TO_INT(g_queue_pop_tail(sm->dstack));
+  if (sm->dstack.empty()) {
+    g_debug("dstack pop empty stack");
+    return DSTACK_EMPTY;
+  } else {
+    auto element = sm->dstack.back();
+    sm->dstack.pop_back();
+    return element;
+  }
 }
 
 static inline element_t dstack_peek(const StateMachine * sm) {
-  return (element_t)GPOINTER_TO_INT(g_queue_peek_tail(sm->dstack));
+  return sm->dstack.empty() ? DSTACK_EMPTY : sm->dstack.back();
 }
 
 static inline bool dstack_check(const StateMachine * sm, element_t expected_element) {
@@ -869,58 +848,62 @@ static inline bool dstack_check(const StateMachine * sm, element_t expected_elem
 
 // Return true if the given tag is currently open.
 static inline bool dstack_is_open(const StateMachine * sm, element_t element) {
-  return g_queue_index(sm->dstack, GINT_TO_POINTER(element)) != -1;
+  return std::find(sm->dstack.begin(), sm->dstack.end(), element) != sm->dstack.end();
 }
 
 static inline void append(StateMachine * sm, const char * s) {
-  sm->output = g_string_append(sm->output, s);
+  sm->output += s;
+}
+
+static inline void append(StateMachine * sm, const std::string string) {
+  sm->output += string;
 }
 
 static inline void append_c_html_escaped(StateMachine * sm, char s) {
   switch (s) {
     case '<':
-      sm->output = g_string_append(sm->output, "&lt;");
+      sm->output += "&lt;";
       break;
 
     case '>':
-      sm->output = g_string_append(sm->output, "&gt;");
+      sm->output += "&gt;";
       break;
 
     case '&':
-      sm->output = g_string_append(sm->output, "&amp;");
+      sm->output += "&amp;";
       break;
 
     case '"':
-      sm->output = g_string_append(sm->output, "&quot;");
+      sm->output += "&quot;";
       break;
 
     default:
-      sm->output = g_string_append_c(sm->output, s);
+      sm->output += s;
       break;
   }
 }
 
 static inline void append_segment(StateMachine * sm, const char * a, const char * b) {
-  sm->output = g_string_append_len(sm->output, a, b - a + 1);
+  sm->output.append(a, b - a + 1);
 }
 
 static inline void append_segment_uri_escaped(StateMachine * sm, const char * a, const char * b) {
   g_autofree char* escaped = g_uri_escape_bytes((const guint8 *)a, b - a + 1, NULL);
-  g_string_append(sm->output, escaped);
+  sm->output += escaped;
 }
 
 static inline void append_segment_uri_possible_fragment_escaped(StateMachine * sm, const char * a, const char * b) {
   g_autofree char* escaped = g_uri_escape_bytes((const guint8 *)a, b - a + 1, "#");
-  g_string_append(sm->output, escaped);
+  sm->output += escaped;
 }
 
 static inline void append_segment_html_escaped(StateMachine * sm, const char * a, const char * b) {
   g_autofree gchar * segment = g_markup_escape_text(a, b - a + 1);
-  g_string_append(sm->output, segment);
+  sm->output += segment;
 }
 
 static inline void append_url(StateMachine * sm, const char* url) {
-  if ((url[0] == '/' || url[0] == '#') && sm->base_url) {
+  if ((url[0] == '/' || url[0] == '#') && !sm->base_url.empty()) {
     append(sm, sm->base_url);
   }
 
@@ -949,15 +932,15 @@ static inline void append_unnamed_url(StateMachine * sm, const char * url_start,
 }
 
 static inline bool append_named_url(StateMachine * sm, const char * url_start, const char * url_end, const char * title_start, const char * title_end) {
-  g_autoptr(GString) parsed_title = parse_basic_inline(title_start, title_end - title_start);
+  auto parsed_title = parse_basic_inline(title_start, title_end - title_start);
 
-  if (!parsed_title) {
+  if (parsed_title.empty()) {
     return false;
   }
 
   if (url_start[0] == '/' || url_start[0] == '#') {
     append(sm, "<a rel=\"nofollow\" class=\"dtext-link\" href=\"");
-    if (sm->base_url) {
+    if (!sm->base_url.empty()) {
       append(sm, sm->base_url);
     }
   } else {
@@ -966,7 +949,7 @@ static inline bool append_named_url(StateMachine * sm, const char * url_start, c
 
   append_segment_html_escaped(sm, url_start, url_end);
   append(sm, "\">");
-  append_segment(sm, parsed_title->str, parsed_title->str + parsed_title->len - 1);
+  append(sm, parsed_title);
   append(sm, "</a>");
 
   return true;
@@ -1004,10 +987,8 @@ static inline void append_post_search_link(StateMachine * sm, const char * tag, 
 }
 
 static inline void append_block_segment(StateMachine * sm, const char * a, const char * b) {
-  if (sm->f_inline) {
-    // sm->output = g_string_append_c(sm->output, ' ');
-  } else {
-    sm->output = g_string_append_len(sm->output, a, b - a + 1);
+  if (!sm->f_inline) {
+    sm->output.append(a, b - a + 1);
   }
 }
 
@@ -1016,14 +997,14 @@ static inline void append_block(StateMachine * sm, const char * s) {
 }
 
 static void append_closing_p(StateMachine * sm) {
-  size_t i = sm->output->len;
+  size_t i = sm->output.size();
 
-  if (i > 4 && !strncmp(sm->output->str + i - 4, "<br>", 4)) {
-    sm->output = g_string_truncate(sm->output, sm->output->len - 4);
+  if (i > 4 && !strncmp(sm->output.c_str() + i - 4, "<br>", 4)) {
+    sm->output.resize(sm->output.size() - 4);
   }
 
-  if (i > 3 && !strncmp(sm->output->str + i - 3, "<p>", 3)) {
-    sm->output = g_string_truncate(sm->output, sm->output->len - 3);
+  if (i > 3 && !strncmp(sm->output.c_str() + i - 3, "<p>", 3)) {
+    sm->output.resize(sm->output.size() - 3);
     return;
   }
 
@@ -1118,7 +1099,7 @@ static void dstack_rewind(StateMachine * sm) {
     case BLOCK_H2: append_block(sm, "</h2>"); break;
     case BLOCK_H1: append_block(sm, "</h1>"); break;
 
-    case QUEUE_EMPTY: break;
+    case DSTACK_EMPTY: break;
   }
 }
 
@@ -1131,14 +1112,14 @@ static void dstack_close_before_block(StateMachine * sm) {
 
 // Close all remaining open tags.
 static void dstack_close_all(StateMachine * sm) {
-  while (!g_queue_is_empty(sm->dstack)) {
+  while (!sm->dstack.empty()) {
     dstack_rewind(sm);
   }
 }
 
 // Close all open tags up to and including the given tag.
 static void dstack_close_until(StateMachine * sm, element_t element) {
-  while (!g_queue_is_empty(sm->dstack) && !dstack_check(sm, element)) {
+  while (!sm->dstack.empty() && !dstack_check(sm, element)) {
     dstack_rewind(sm);
   }
 
@@ -1183,83 +1164,66 @@ static inline const char* find_boundary_c(const char* c) {
   return c - offset;
 }
 
-StateMachine* init_machine(const char * src, size_t len) {
-  StateMachine* sm = (StateMachine *)g_malloc0(sizeof(StateMachine));
+StateMachine init_machine(const char * src, size_t len) {
+  StateMachine sm;
 
   size_t output_length = len;
   if (output_length < (INT16_MAX / 2)) {
     output_length *= 2;
   }
 
-  sm->f_inline = FALSE;
-  sm->allow_color = FALSE;
-  sm->max_thumbs = 0;
-  sm->base_url = NULL;
+  sm.f_inline = FALSE;
+  sm.allow_color = FALSE;
+  sm.max_thumbs = 0;
 
-  sm->p = src;
-  sm->pb = sm->p;
-  sm->pe = sm->p + len;
-  sm->eof = sm->pe;
-  sm->ts = NULL;
-  sm->te = NULL;
-  sm->cs = dtext_start;
-  sm->act = 0;
-  sm->top = 0;
-  sm->output = g_string_sized_new(output_length);
-  sm->a1 = NULL;
-  sm->a2 = NULL;
-  sm->b1 = NULL;
-  sm->b2 = NULL;
-  sm->posts = g_array_sized_new(FALSE, TRUE, sizeof(long), 10);
-  sm->stack = g_array_sized_new(FALSE, TRUE, sizeof(int), 16);
-  sm->dstack = g_queue_new();
-  sm->error = NULL;
-  sm->list_nest = 0;
-  sm->header_mode = false;
+  sm.p = src;
+  sm.pb = sm.p;
+  sm.pe = sm.p + len;
+  sm.eof = sm.pe;
+  sm.ts = NULL;
+  sm.te = NULL;
+  sm.cs = dtext_start;
+  sm.act = 0;
+  sm.top = 0;
+
+  sm.output.reserve(output_length);
+  sm.stack.reserve(16);
+  sm.dstack.reserve(16);
+  sm.posts.reserve(10);
+
+  sm.a1 = NULL;
+  sm.a2 = NULL;
+  sm.b1 = NULL;
+  sm.b2 = NULL;
+  sm.list_nest = 0;
+  sm.header_mode = false;
 
   return sm;
 }
 
-void free_machine(StateMachine * sm) {
-  g_string_free(sm->output, TRUE);
-  g_array_unref(sm->stack);
-  g_array_unref(sm->posts);
-  g_queue_free(sm->dstack);
-  g_clear_error(&sm->error);
-  g_free(sm);
-}
+std::string parse_basic_inline(const char* dtext, const ssize_t length) {
+    StateMachine sm = init_machine(dtext, length);
+    sm.f_inline = true;
+    sm.allow_color = false;
+    sm.max_thumbs = 0;
 
-GQuark dtext_parse_error_quark() {
-  return g_quark_from_static_string("dtext-parse-error-quark");
-}
+    sm.cs = dtext_en_basic_inline;
 
-GString* parse_basic_inline(const char* dtext, const ssize_t length) {
-    GString* output = NULL;
-    StateMachine* sm = init_machine(dtext, length);
-    sm->f_inline = true;
-    sm->allow_color = false;
-    sm->max_thumbs = 0;
-
-    sm->cs = dtext_en_basic_inline;
-
-    if (parse_helper(sm)) {
-      output = g_string_new(sm->output->str);
-    } else {
+    if (!parse_helper(&sm)) {
       g_debug("parse_basic_inline failed");
     }
 
-    free_machine(sm);
-    return output;
+    return sm.output;
 }
 
-gboolean parse_helper(StateMachine* sm) {
+bool parse_helper(StateMachine* sm) {
   const gchar* end = NULL;
 
   g_debug("start\n");
 
   if (!g_utf8_validate(sm->pb, sm->pe - sm->pb, &end)) {
-    g_set_error(&sm->error, DTEXT_PARSE_ERROR, DTEXT_PARSE_ERROR_INVALID_UTF8, "invalid utf8 starting at byte %td", end - sm->pb + 1);
-    return FALSE;
+    sm->error = "invalid utf8 starting at byte " + std::to_string(end - sm->pb + 1);
+    return false;
   }
 
   %% write init nocs;
@@ -1267,5 +1231,5 @@ gboolean parse_helper(StateMachine* sm) {
 
   dstack_close_all(sm);
 
-  return sm->error == NULL;
+  return sm->error.empty();
 }

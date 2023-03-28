@@ -1,24 +1,47 @@
 #ifndef DTEXT_H
 #define DTEXT_H
 
-#include <glib.h>
-#include <stdbool.h>
+#include <string>
+#include <vector>
 
-#ifndef DEBUG
-#undef g_debug
-#define g_debug(...)
-#endif
-
-#define DTEXT_PARSE_ERROR dtext_parse_error_quark()
-#define DTEXT_PARSE_ERROR_FAILED 0
-#define DTEXT_PARSE_ERROR_DEPTH_EXCEEDED 1
-#define DTEXT_PARSE_ERROR_INVALID_UTF8 2
+typedef enum element_t {
+  DSTACK_EMPTY = 0,
+  BLOCK_P,
+  BLOCK_QUOTE,
+  BLOCK_SECTION,
+  BLOCK_SPOILER,
+  BLOCK_CODE,
+  BLOCK_TABLE,
+  BLOCK_THEAD,
+  BLOCK_TBODY,
+  BLOCK_UL,
+  BLOCK_LI,
+  BLOCK_TR,
+  BLOCK_TH,
+  BLOCK_TD,
+  BLOCK_TN,
+  BLOCK_H1,
+  BLOCK_H2,
+  BLOCK_H3,
+  BLOCK_H4,
+  BLOCK_H5,
+  BLOCK_H6,
+  INLINE_B,
+  INLINE_I,
+  INLINE_U,
+  INLINE_S,
+  INLINE_TN,
+  INLINE_SUP,
+  INLINE_SUB,
+  INLINE_COLOR,
+  INLINE_SPOILER,
+} element_t;
 
 typedef struct StateMachine {
   bool f_inline;
   bool allow_color;
   int max_thumbs;
-  const char * base_url;
+  std::string base_url;
 
   size_t top;
   int cs;
@@ -36,20 +59,17 @@ typedef struct StateMachine {
   const char * b2;
   bool list_mode;
   bool header_mode;
-  GString * output;
-  GArray * stack;
-  GQueue * dstack;
-  GError * error;
-  GArray * posts;
   int list_nest;
+  std::vector<long> posts;
+  std::string output;
+  std::vector<int> stack;
+  std::vector<element_t> dstack;
+  std::string  error;
 } StateMachine;
 
-StateMachine* init_machine(const char * src, size_t len);
-void free_machine(StateMachine * sm);
+StateMachine init_machine(const char * src, size_t len);
 
-gboolean parse_helper(StateMachine* sm);
-GString* parse_basic_inline(const char* dtext, const ssize_t length);
-
-GQuark dtext_parse_error_quark();
+bool parse_helper(StateMachine* sm);
+std::string parse_basic_inline(const char* dtext, const ssize_t length);
 
 #endif

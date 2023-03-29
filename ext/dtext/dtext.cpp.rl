@@ -1,13 +1,14 @@
 #include "dtext.h"
 
-#include <stdio.h>
-#include <stdint.h>
-#include <stdbool.h>
-#include <string.h>
 #include <glib.h>
 #include <algorithm>
 
-#ifndef DEBUG
+#ifdef DEBUG
+#undef g_debug
+#define STRINGIFY(x) XSTRINGIFY(x)
+#define XSTRINGIFY(x) #x
+#define g_debug(fmt, ...) fprintf(stderr, "\x1B[1;32mDEBUG\x1B[0m %-28.28s %-24.24s " fmt "\n", __FILE__ ":" STRINGIFY(__LINE__), __func__, ##__VA_ARGS__)
+#else
 #undef g_debug
 #define g_debug(...)
 #endif
@@ -1163,8 +1164,8 @@ StateMachine init_machine(const char * src, size_t len) {
     output_length *= 2;
   }
 
-  sm.f_inline = FALSE;
-  sm.allow_color = FALSE;
+  sm.f_inline = false;
+  sm.allow_color = false;
   sm.max_thumbs = 0;
 
   sm.p = src;

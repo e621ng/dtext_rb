@@ -135,7 +135,7 @@ basic_inline := |*
   '[/sup]'i => { dstack_close_inline(sm, INLINE_SUP, "</sup>"); };
   '[sub]'i  => { dstack_open_inline(sm, INLINE_SUB, "<sub>"); };
   '[/sub]'i => { dstack_close_inline(sm, INLINE_SUB, "</sub>"); };
-  any => { append_c_html_escaped(sm, fc); };
+  any => { append_html_escaped(sm, fc); };
 *|;
 
 inline := |*
@@ -161,13 +161,13 @@ inline := |*
       long post_id = strtol(sm->a1, (char**)&sm->a2, 10);
       sm->posts.push_back(post_id);
       append(sm, "<a class=\"dtext-link dtext-id-link dtext-post-id-link thumb-placeholder-link\" data-id=\"");
-      append_segment_html_escaped(sm, sm->a1, sm->a2 - 1);
+      append_html_escaped(sm, sm->a1, sm->a2 - 1);
       append(sm, "\" href=\"");
       append_url(sm, "/posts/");
       append_segment_uri_escaped(sm, sm->a1, sm->a2 -1);
       append(sm, "\">");
       append(sm, "post #");
-      append_segment_html_escaped(sm, sm->a1, sm->a2 - 1);
+      append_html_escaped(sm, sm->a1, sm->a2 - 1);
       append(sm, "</a>");
     } else {
       append_id_link(sm, "post", "post", "/posts/");
@@ -222,7 +222,7 @@ inline := |*
     }
 
     if (url_end < match_end) {
-      append_segment_html_escaped(sm, url_end + 1, match_end);
+      append_html_escaped(sm, url_end + 1, match_end);
     }
   };
 
@@ -240,7 +240,7 @@ inline := |*
     append_unnamed_url(sm, url_start, url_end);
 
     if (url_end < match_end) {
-      append_segment_html_escaped(sm, url_end + 1, match_end);
+      append_html_escaped(sm, url_end + 1, match_end);
     }
   };
 
@@ -250,7 +250,7 @@ inline := |*
 
   # probably a tag. examples include @.@ and @_@
   '@' graph '@' => {
-    append_segment_html_escaped(sm, sm->ts, sm->te - 1);
+    append_html_escaped(sm, sm->ts, sm->te - 1);
   };
 
   newline list_item => {
@@ -482,12 +482,12 @@ inline := |*
   };
 
   '\r' => {
-    append_c_html_escaped(sm, ' ');
+    append(sm, ' ');
   };
 
   any => {
     g_debug("inline char: %c", fc);
-    append_c_html_escaped(sm, fc);
+    append_html_escaped(sm, fc);
   };
 *|;
 
@@ -502,7 +502,7 @@ inline_code := |*
   };
 
   any => {
-    append_c_html_escaped(sm, fc);
+    append_html_escaped(sm, fc);
   };
 *|;
 
@@ -517,7 +517,7 @@ code := |*
   };
 
   any => {
-    append_c_html_escaped(sm, fc);
+    append_html_escaped(sm, fc);
   };
 *|;
 
@@ -758,7 +758,7 @@ main := |*
     g_debug("block [section=]");
     dstack_open_block(sm, BLOCK_SECTION, "<details>");
     append(sm, "<summary>");
-    append_segment_html_escaped(sm, sm->a1, sm->a2 - 1);
+    append_html_escaped(sm, sm->a1, sm->a2 - 1);
     append(sm, "</summary>");
   };
 
@@ -766,7 +766,7 @@ main := |*
     g_debug("block expanded [section=]");
     dstack_open_block(sm, BLOCK_SECTION, "<details open>");
     append(sm, "<summary>");
-    append_segment_html_escaped(sm, sm->a1, sm->a2 - 1);
+    append_html_escaped(sm, sm->a1, sm->a2 - 1);
     append(sm, "</summary>");
   };
 
@@ -851,35 +851,26 @@ static inline bool dstack_is_open(const StateMachine * sm, element_t element) {
   return std::find(sm->dstack.begin(), sm->dstack.end(), element) != sm->dstack.end();
 }
 
-static inline void append(StateMachine * sm, const char * s) {
-  sm->output += s;
+template <typename string_type>
+static inline void append(StateMachine * sm, const string_type c) {
+  sm->output += c;
 }
 
-static inline void append(StateMachine * sm, const std::string string) {
-  sm->output += string;
-}
-
-static inline void append_c_html_escaped(StateMachine * sm, char s) {
+static inline void append_html_escaped(StateMachine * sm, char s) {
   switch (s) {
-    case '<':
-      sm->output += "&lt;";
-      break;
+    case '<': append(sm, "&lt;"); break;
+    case '>': append(sm, "&gt;"); break;
+    case '&': append(sm, "&amp;"); break;
+    case '"': append(sm, "&quot;"); break;
+    default:  append(sm, s);
+  }
+}
 
-    case '>':
-      sm->output += "&gt;";
-      break;
+static inline void append_html_escaped(StateMachine * sm, const char * a, const char * b) {
+  const std::string_view input(a, b - a + 1);
 
-    case '&':
-      sm->output += "&amp;";
-      break;
-
-    case '"':
-      sm->output += "&quot;";
-      break;
-
-    default:
-      sm->output += s;
-      break;
+  for (const unsigned char c : input) {
+    append_html_escaped(sm, c);
   }
 }
 
@@ -902,11 +893,6 @@ static inline void append_segment_uri_escaped(StateMachine * sm, const char * a,
   }
 }
 
-static inline void append_segment_html_escaped(StateMachine * sm, const char * a, const char * b) {
-  g_autofree gchar * segment = g_markup_escape_text(a, b - a + 1);
-  sm->output += segment;
-}
-
 static inline void append_url(StateMachine * sm, const char* url) {
   if ((url[0] == '/' || url[0] == '#') && !sm->base_url.empty()) {
     append(sm, sm->base_url);
@@ -924,15 +910,15 @@ static inline void append_id_link(StateMachine * sm, const char * title, const c
   append(sm, "\">");
   append(sm, title);
   append(sm, " #");
-  append_segment_html_escaped(sm, sm->a1, sm->a2 - 1);
+  append_html_escaped(sm, sm->a1, sm->a2 - 1);
   append(sm, "</a>");
 }
 
 static inline void append_unnamed_url(StateMachine * sm, const char * url_start, const char * url_end) {
   append(sm, "<a rel=\"nofollow\" class=\"dtext-link\" href=\"");
-  append_segment_html_escaped(sm, url_start, url_end);
+  append_html_escaped(sm, url_start, url_end);
   append(sm, "\">");
-  append_segment_html_escaped(sm, url_start, url_end);
+  append_html_escaped(sm, url_start, url_end);
   append(sm, "</a>");
 }
 
@@ -952,7 +938,7 @@ static inline bool append_named_url(StateMachine * sm, const char * url_start, c
     append(sm, "<a rel=\"nofollow\" class=\"dtext-link dtext-external-link\" href=\"");
   }
 
-  append_segment_html_escaped(sm, url_start, url_end);
+  append_html_escaped(sm, url_start, url_end);
   append(sm, "\">");
   append(sm, parsed_title);
   append(sm, "</a>");
@@ -975,7 +961,7 @@ static inline void append_wiki_link(StateMachine * sm, const char * tag_segment,
     append_segment_uri_escaped(sm, normalized_tag.c_str(), normalized_tag.c_str() + normalized_tag.size() - 1, '#');
     append(sm, "\">");
   }
-  append_segment_html_escaped(sm, title_segment, title_segment + title_len - 1);
+  append_html_escaped(sm, title_segment, title_segment + title_len - 1);
   append(sm, "</a>");
 }
 
@@ -987,7 +973,7 @@ static inline void append_post_search_link(StateMachine * sm, const char * tag_s
   append_url(sm, "/posts?tags=");
   append_segment_uri_escaped(sm, normalized_tag.c_str(), normalized_tag.c_str() + normalized_tag.size() - 1);
   append(sm, "\">");
-  append_segment_html_escaped(sm, title_segment, title_segment + title_len - 1);
+  append_html_escaped(sm, title_segment, title_segment + title_len - 1);
   append(sm, "</a>");
 }
 

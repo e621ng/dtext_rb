@@ -887,14 +887,19 @@ static inline void append_segment(StateMachine * sm, const char * a, const char 
   sm->output.append(a, b - a + 1);
 }
 
-static inline void append_segment_uri_escaped(StateMachine * sm, const char * a, const char * b) {
-  g_autofree char* escaped = g_uri_escape_bytes((const guint8 *)a, b - a + 1, NULL);
-  sm->output += escaped;
-}
+static inline void append_segment_uri_escaped(StateMachine * sm, const char * a, const char * b, const char whitelist = '-') {
+  static const char hex[] = "0123456789ABCDEF";
+  const std::string_view input(a, b - a + 1);
 
-static inline void append_segment_uri_possible_fragment_escaped(StateMachine * sm, const char * a, const char * b) {
-  g_autofree char* escaped = g_uri_escape_bytes((const guint8 *)a, b - a + 1, "#");
-  sm->output += escaped;
+  for (const unsigned char c : input) {
+    if (isalnum(c) || c == '-' || c == '_' || c == '.' || c == '~' || c == whitelist) {
+      sm->output += c;
+    } else {
+      sm->output += '%';
+      sm->output += hex[c >> 4];
+      sm->output += hex[c & 0x0F];
+    }
+  }
 }
 
 static inline void append_segment_html_escaped(StateMachine * sm, const char * a, const char * b) {
@@ -967,7 +972,7 @@ static inline void append_wiki_link(StateMachine * sm, const char * tag_segment,
   } else {
     append(sm, "<a rel=\"nofollow\" class=\"dtext-link dtext-wiki-link\" href=\"");
     append_url(sm, "/wiki_pages/show_or_new?title=");
-    append_segment_uri_possible_fragment_escaped(sm, normalized_tag.c_str(), normalized_tag.c_str() + normalized_tag.size() - 1);
+    append_segment_uri_escaped(sm, normalized_tag.c_str(), normalized_tag.c_str() + normalized_tag.size() - 1, '#');
     append(sm, "\">");
   }
   append_segment_html_escaped(sm, title_segment, title_segment + title_len - 1);

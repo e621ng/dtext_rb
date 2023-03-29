@@ -79,8 +79,7 @@ prepush {
   size_t len = sm->stack.size();
 
   if (len > MAX_STACK_DEPTH) {
-    sm->error = "too many nested elements";
-    fbreak;
+    throw DTextError("too many nested elements");
   }
 
   if (sm->top >= len) {
@@ -265,9 +264,7 @@ inline := |*
     const char* url_start = sm->b1;
     const char* url_end = find_boundary_c(match_end);
 
-    if (!append_named_url(sm, url_start, url_end, sm->a1, sm->a2)) {
-      fbreak;
-    }
+    append_named_url(sm, url_start, url_end, sm->a1, sm->a2);
 
     if (url_end < match_end) {
       append_html_escaped(sm, url_end + 1, match_end);
@@ -275,9 +272,7 @@ inline := |*
   };
 
   bracketed_textile_link => {
-    if (!append_named_url(sm, sm->b1, sm->b2, sm->a1, sm->a2)) {
-      fbreak;
-    }
+    append_named_url(sm, sm->b1, sm->b2, sm->a1, sm->a2);
   };
 
   url => {
@@ -969,12 +964,8 @@ static inline void append_unnamed_url(StateMachine * sm, const char * url_start,
   append(sm, "</a>");
 }
 
-static inline bool append_named_url(StateMachine * sm, const char * url_start, const char * url_end, const char * title_start, const char * title_end) {
+static inline void append_named_url(StateMachine * sm, const char * url_start, const char * url_end, const char * title_start, const char * title_end) {
   auto parsed_title = parse_basic_inline(title_start, title_end - title_start);
-
-  if (parsed_title.empty()) {
-    return false;
-  }
 
   if (url_start[0] == '/' || url_start[0] == '#') {
     append(sm, "<a rel=\"nofollow\" class=\"dtext-link\" href=\"");
@@ -989,8 +980,6 @@ static inline bool append_named_url(StateMachine * sm, const char * url_start, c
   append(sm, "\">");
   append(sm, parsed_title);
   append(sm, "</a>");
-
-  return true;
 }
 
 static inline void append_wiki_link(StateMachine * sm, const char * tag_segment, const size_t tag_len, const char * title_segment, const size_t title_len) {
@@ -1252,25 +1241,16 @@ std::string parse_basic_inline(const char* dtext, const ssize_t length) {
 
     sm.cs = dtext_en_basic_inline;
 
-    if (!parse_helper(&sm)) {
-      g_debug("parse_basic_inline failed");
-    }
+    parse_helper(&sm);
 
     return sm.output;
 }
 
-bool parse_helper(StateMachine* sm) {
+void parse_helper(StateMachine* sm) {
   g_debug("start\n");
-
-  if (memchr(sm->pb, 0, sm->pe - sm->pb)) {
-    sm->error = "invalid byte sequence in UTF-8" ;
-    return false;
-  }
 
   %% write init nocs;
   %% write exec;
 
   dstack_close_all(sm);
-
-  return sm->error.empty();
 }

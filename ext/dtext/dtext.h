@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <stdexcept>
 
 typedef enum element_t {
   DSTACK_EMPTY = 0,
@@ -37,6 +38,10 @@ typedef enum element_t {
   INLINE_SPOILER,
 } element_t;
 
+class DTextError : public std::runtime_error {
+  using std::runtime_error::runtime_error;
+};
+
 struct DTextOptions {
   bool f_inline = false;
   bool allow_color = false;
@@ -68,12 +73,11 @@ typedef struct StateMachine {
   std::string output;
   std::vector<int> stack;
   std::vector<element_t> dstack;
-  std::string  error;
 } StateMachine;
 
 StateMachine init_machine(const char * src, size_t len);
 
-bool parse_helper(StateMachine* sm);
+void parse_helper(StateMachine* sm);
 std::string parse_basic_inline(const char* dtext, const ssize_t length);
 
 #endif

@@ -21,8 +21,14 @@ static VALUE c_parse(VALUE self, VALUE input, VALUE f_inline, VALUE f_allow_colo
     sm.options.base_url = StringValueCStr(base_url); // base_url.to_str # raises ArgumentError if base_url contains null bytes.
   }
 
-  if (!parse_helper(&sm)) {
-    rb_raise(cDTextError, "%s", sm.error.c_str());
+  if (memchr(RSTRING_PTR(input), 0, RSTRING_LEN(input))) {
+    rb_raise(cDTextError, "invalid byte sequence in UTF-8");
+  }
+
+  try {
+    parse_helper(&sm);
+  } catch (std::exception& e) {
+    rb_raise(cDTextError, "%s", e.what());
   }
 
   VALUE retStr = rb_utf8_str_new(sm.output.c_str(), sm.output.size());

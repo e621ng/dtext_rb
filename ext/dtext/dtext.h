@@ -49,35 +49,43 @@ struct DTextOptions {
   std::string base_url;
 };
 
-typedef struct StateMachine {
+struct DTextResult {
+  std::string dtext;
+  std::vector<long> posts;
+};
+
+class StateMachine {
+public:
+  static DTextResult parse_dtext(const char* src, const size_t len, DTextOptions options);
+  static std::string parse_basic_inline(const char* src, const size_t len);
+
   DTextOptions options;
 
   size_t top;
   int cs;
-  int act;
-  const char * p;
-  const char * pb;
-  const char * pe;
-  const char * eof;
-  const char * ts;
-  const char * te;
+  int act = 0;
+  const char * p = NULL;
+  const char * pb = NULL;
+  const char * pe = NULL;
+  const char * eof = NULL;
+  const char * ts = NULL;
+  const char * te = NULL;
+  const char * a1 = NULL;
+  const char * a2 = NULL;
+  const char * b1 = NULL;
+  const char * b2 = NULL;
 
-  const char * a1;
-  const char * a2;
-  const char * b1;
-  const char * b2;
-  bool list_mode;
-  bool header_mode;
-  int list_nest;
+  bool header_mode = false;
+  int list_nest = 0;
+
   std::vector<long> posts;
   std::string output;
   std::vector<int> stack;
   std::vector<element_t> dstack;
-} StateMachine;
 
-StateMachine init_machine(const char * src, size_t len);
-
-void parse_helper(StateMachine* sm);
-std::string parse_basic_inline(const char* dtext, const ssize_t length);
+private:
+  StateMachine(const char * src, size_t len, int initial_state, const DTextOptions options);
+  DTextResult parse();
+};
 
 #endif

@@ -12,13 +12,14 @@ static VALUE c_parse(VALUE self, VALUE input, VALUE f_inline, VALUE f_allow_colo
   }
 
   StringValue(input);
-  StateMachine sm = init_machine(RSTRING_PTR(input), RSTRING_LEN(input));
-  sm.options.f_inline = RTEST(f_inline);
-  sm.options.allow_color = RTEST(f_allow_color);
-  sm.options.max_thumbs = FIX2LONG(f_max_thumbs);
+
+  DTextOptions options = {};
+  options.f_inline = RTEST(f_inline);
+  options.allow_color = RTEST(f_allow_color);
+  options.max_thumbs = FIX2LONG(f_max_thumbs);
 
   if (!NIL_P(base_url)) {
-    sm.options.base_url = StringValueCStr(base_url); // base_url.to_str # raises ArgumentError if base_url contains null bytes.
+    options.base_url = StringValueCStr(base_url); // base_url.to_str # raises ArgumentError if base_url contains null bytes.
   }
 
   if (memchr(RSTRING_PTR(input), 0, RSTRING_LEN(input))) {
@@ -26,22 +27,23 @@ static VALUE c_parse(VALUE self, VALUE input, VALUE f_inline, VALUE f_allow_colo
   }
 
   try {
-    parse_helper(&sm);
+    auto result = StateMachine::parse_dtext(RSTRING_PTR(input), RSTRING_LEN(input), options);
+
+    VALUE retStr = rb_utf8_str_new(result.dtext.c_str(), result.dtext.size());
+    VALUE retPostIds = rb_ary_new_capa(result.posts.size());
+
+    for (long post_id : result.posts) {
+      rb_ary_push(retPostIds, LONG2FIX(post_id));
+    }
+
+    VALUE ret = rb_ary_new_capa(2);
+    rb_ary_push(ret, retStr);
+    rb_ary_push(ret, retPostIds);
+
+    return ret;
   } catch (std::exception& e) {
     rb_raise(cDTextError, "%s", e.what());
   }
-
-  VALUE retStr = rb_utf8_str_new(sm.output.c_str(), sm.output.size());
-  VALUE retPostIds = rb_ary_new_capa(sm.posts.size());
-  for (long post_id : sm.posts) {
-    rb_ary_push(retPostIds, LONG2FIX(post_id));
-  }
-
-  VALUE ret = rb_ary_new_capa(2);
-  rb_ary_push(ret, retStr);
-  rb_ary_push(ret, retPostIds);
-
-  return ret;
 }
 
 extern "C" void Init_dtext() {

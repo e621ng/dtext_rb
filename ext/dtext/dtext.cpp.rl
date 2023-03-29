@@ -965,7 +965,7 @@ static inline void append_unnamed_url(StateMachine * sm, const char * url_start,
 }
 
 static inline void append_named_url(StateMachine * sm, const char * url_start, const char * url_end, const char * title_start, const char * title_end) {
-  auto parsed_title = parse_basic_inline(title_start, title_end - title_start);
+  auto parsed_title = sm->parse_basic_inline(title_start, title_end - title_start);
 
   if (url_start[0] == '/' || url_start[0] == '#') {
     append(sm, "<a rel=\"nofollow\" class=\"dtext-link\" href=\"");
@@ -1199,58 +1199,43 @@ static inline const char* find_boundary_c(const char* c) {
   }
 }
 
-StateMachine init_machine(const char * src, size_t len) {
-  StateMachine sm;
+StateMachine::StateMachine(const char * src, size_t len, int initial_state, const DTextOptions options) : options(options) {
+  output.reserve(len * 1.5);
+  stack.reserve(16);
+  dstack.reserve(16);
+  posts.reserve(10);
 
-  size_t output_length = len;
-  if (output_length < (INT16_MAX / 2)) {
-    output_length *= 2;
-  }
-
-  sm.options = DTextOptions {};
-  sm.p = src;
-  sm.pb = sm.p;
-  sm.pe = sm.p + len;
-  sm.eof = sm.pe;
-  sm.ts = NULL;
-  sm.te = NULL;
-  sm.cs = dtext_start;
-  sm.act = 0;
-  sm.top = 0;
-
-  sm.output.reserve(output_length);
-  sm.stack.reserve(16);
-  sm.dstack.reserve(16);
-  sm.posts.reserve(10);
-
-  sm.a1 = NULL;
-  sm.a2 = NULL;
-  sm.b1 = NULL;
-  sm.b2 = NULL;
-  sm.list_nest = 0;
-  sm.header_mode = false;
-
-  return sm;
+  p = src;
+  pb = p;
+  pe = p + len;
+  eof = pe;
+  cs = initial_state;
 }
 
-std::string parse_basic_inline(const char* dtext, const ssize_t length) {
-    StateMachine sm = init_machine(dtext, length);
-    sm.options.f_inline = true;
-    sm.options.allow_color = false;
-    sm.options.max_thumbs = 0;
+std::string StateMachine::parse_basic_inline(const char* src, const size_t len) {
+    DTextOptions options = {};
+    options.f_inline = true;
+    options.allow_color = false;
+    options.max_thumbs = 0;
 
-    sm.cs = dtext_en_basic_inline;
+    StateMachine sm(src, len, dtext_en_basic_inline, options);
 
-    parse_helper(&sm);
-
-    return sm.output;
+    return sm.parse().dtext;
 }
 
-void parse_helper(StateMachine* sm) {
+DTextResult StateMachine::parse_dtext(const char* src, const size_t len, DTextOptions options) {
+  StateMachine sm(src, len, dtext_en_main, options);
+  return sm.parse();
+}
+
+DTextResult StateMachine::parse() {
+  StateMachine* sm = this;
   g_debug("start\n");
 
   %% write init nocs;
   %% write exec;
 
   dstack_close_all(sm);
+
+  return DTextResult { sm->output, sm->posts };
 }

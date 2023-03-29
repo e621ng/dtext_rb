@@ -150,9 +150,9 @@ inline := |*
 
   internal_anchor => {
     append(sm, "<a id=\"");
-    g_autofree gchar* lowercased_tag = g_utf8_strdown(sm->a1, sm->a2-sm->a1);
-    const size_t tag_len = sm->a2 - sm->a1;
-    append_segment_uri_escaped(sm, lowercased_tag, lowercased_tag + tag_len -1);
+    std::string lowercased_tag = std::string(sm->a1, sm->a2-sm->a1);
+    std::transform(lowercased_tag.begin(), lowercased_tag.end(), lowercased_tag.begin(), [](unsigned char c) { return std::tolower(c); });
+    append_segment_uri_escaped(sm, lowercased_tag.c_str(), lowercased_tag.c_str() + lowercased_tag.size() - 1);
     append(sm, "\"></a>");
   };
 
@@ -955,34 +955,34 @@ static inline bool append_named_url(StateMachine * sm, const char * url_start, c
   return true;
 }
 
-static inline void append_wiki_link(StateMachine * sm, const char * tag, const size_t tag_len, const char * title, const size_t title_len) {
-  g_autofree gchar* lowercased_tag = g_utf8_strdown(tag, tag_len);
-  g_autoptr(GString) normalized_tag = g_string_new(g_strdelimit(lowercased_tag, " ", '_'));
+static inline void append_wiki_link(StateMachine * sm, const char * tag_segment, const size_t tag_len, const char * title_segment, const size_t title_len) {
+  std::string normalized_tag = std::string(tag_segment, tag_len);
+  std::transform(normalized_tag.begin(), normalized_tag.end(), normalized_tag.begin(), [](unsigned char c) { return c == ' ' ? '_' : std::tolower(c); });
 
   // FIXME: Take the anchor as an argument here
-  if (tag[0] == '#') {
+  if (tag_segment[0] == '#') {
     append(sm, "<a rel=\"nofollow\" class=\"dtext-link dtext-wiki-link\" href=\"#");
-    append_segment_uri_escaped(sm, lowercased_tag+1, lowercased_tag + tag_len - 1);
+    append_segment_uri_escaped(sm, normalized_tag.c_str() + 1, normalized_tag.c_str() + normalized_tag.size() - 1);
     append(sm, "\">");
   } else {
     append(sm, "<a rel=\"nofollow\" class=\"dtext-link dtext-wiki-link\" href=\"");
     append_url(sm, "/wiki_pages/show_or_new?title=");
-    append_segment_uri_possible_fragment_escaped(sm, normalized_tag->str, normalized_tag->str + normalized_tag->len - 1);
+    append_segment_uri_possible_fragment_escaped(sm, normalized_tag.c_str(), normalized_tag.c_str() + normalized_tag.size() - 1);
     append(sm, "\">");
   }
-  append_segment_html_escaped(sm, title, title + title_len - 1);
+  append_segment_html_escaped(sm, title_segment, title_segment + title_len - 1);
   append(sm, "</a>");
 }
 
-static inline void append_post_search_link(StateMachine * sm, const char * tag, const size_t tag_len, const char * title, const size_t title_len) {
-  g_autofree gchar* lowercased_tag = g_utf8_strdown(tag, tag_len);
-  g_autoptr(GString) normalized_tag = g_string_new(lowercased_tag);
+static inline void append_post_search_link(StateMachine * sm, const char * tag_segment, const size_t tag_len, const char * title_segment, const size_t title_len) {
+  std::string normalized_tag = std::string(tag_segment, tag_len);
+  std::transform(normalized_tag.begin(), normalized_tag.end(), normalized_tag.begin(), [](unsigned char c) { return std::tolower(c); });
 
   append(sm, "<a rel=\"nofollow\" class=\"dtext-link dtext-post-search-link\" href=\"");
   append_url(sm, "/posts?tags=");
-  append_segment_uri_escaped(sm, normalized_tag->str, normalized_tag->str + normalized_tag->len - 1);
+  append_segment_uri_escaped(sm, normalized_tag.c_str(), normalized_tag.c_str() + normalized_tag.size() - 1);
   append(sm, "\">");
-  append_segment_html_escaped(sm, title, title + title_len - 1);
+  append_segment_html_escaped(sm, title_segment, title_segment + title_len - 1);
   append(sm, "</a>");
 }
 

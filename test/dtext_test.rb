@@ -110,6 +110,10 @@ test2[/ltable]
     assert_parse("<p><a rel=\"nofollow\" class=\"dtext-link dtext-wiki-link\" href=\"/wiki_pages/show_or_new?title=pok%C3%A9mon\">pokémon</a></p>", "[[pokémon]]")
   end
 
+  def test_wiki_links_lowercase_utf8
+    assert_parse('<p><a rel="nofollow" class="dtext-link dtext-wiki-link" href="/wiki_pages/show_or_new?title=%C5%8Ckami">ŌkamI</a></p>', "[[ŌkamI]]")
+  end
+
   def test_wiki_links_edge
     assert_parse("<p>[[|_|]]</p>", "[[|_|]]")
     assert_parse("<p>[[||_||]]</p>", "[[||_||]]")
@@ -374,6 +378,10 @@ test2[/ltable]
     assert_parse('<p><a rel="nofollow" class="dtext-link dtext-post-search-link" href="/posts?tags=%3C3">&lt;3</a></p>', "{{<3}}")
     assert_parse('<p><a rel="nofollow" class="dtext-link dtext-post-search-link" href="/posts?tags=%20%22%23%26%2B%3C%3E%3F"> &quot;#&amp;+&lt;&gt;?</a></p>', '{{ "#&+<>?}}')
     assert_parse('<p><a rel="nofollow" class="dtext-link dtext-post-search-link" href="/posts?tags=%E6%9D%B1%E6%96%B9">東方</a></p>', "{{東方}}")
+  end
+
+  def test_inline_tags_lowercase_utf8
+    assert_parse('<p><a rel="nofollow" class="dtext-link dtext-post-search-link" href="/posts?tags=n%20%CE%A9%20p">n Ω P</a></p>', "{{n Ω P}}")
   end
 
   def test_inline_tags_aliased

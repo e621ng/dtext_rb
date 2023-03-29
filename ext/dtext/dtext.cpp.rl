@@ -205,7 +205,7 @@ inline := |*
   };
 
   thumb_id => {
-    if(sm->posts.size() < sm->max_thumbs) {
+    if(sm->posts.size() < sm->options.max_thumbs) {
       long post_id = strtol(sm->a1, (char**)&sm->a2, 10);
       sm->posts.push_back(post_id);
       append(sm, "<a class=\"dtext-link dtext-id-link dtext-post-id-link thumb-placeholder-link\" data-id=\"");
@@ -348,7 +348,7 @@ inline := |*
   };
 
   color_typed => {
-    if(!sm->allow_color)
+    if(!sm->options.allow_color)
       fret;
     dstack_push(sm, INLINE_COLOR);
     append(sm, "<span class=\"dtext-color-");
@@ -357,7 +357,7 @@ inline := |*
   };
 
   color_open => {
-    if(!sm->allow_color)
+    if(!sm->options.allow_color)
       fret;
     dstack_push(sm, INLINE_COLOR);
     append(sm, "<span class=\"dtext-color\" style=\"color:");
@@ -371,7 +371,7 @@ inline := |*
   };
 
   color_close => {
-    if(!sm->allow_color)
+    if(!sm->options.allow_color)
       fret;
     dstack_close_inline(sm, INLINE_COLOR, "</span>");
   };
@@ -670,7 +670,7 @@ main := |*
     char header = *sm->a1;
     std::string id_name = "dtext-" + std::string(sm->b1, sm->b2 - sm->b1);
 
-    if (sm->f_inline) {
+    if (sm->options.f_inline) {
       header = '6';
     }
 
@@ -725,7 +725,7 @@ main := |*
   header => {
     char header = *sm->a1;
 
-    if (sm->f_inline) {
+    if (sm->options.f_inline) {
       header = '6';
     }
 
@@ -941,8 +941,8 @@ static inline void append_segment_uri_escaped(StateMachine * sm, const char * a,
 }
 
 static inline void append_url(StateMachine * sm, const char* url) {
-  if ((url[0] == '/' || url[0] == '#') && !sm->base_url.empty()) {
-    append(sm, sm->base_url);
+  if ((url[0] == '/' || url[0] == '#') && !sm->options.base_url.empty()) {
+    append(sm, sm->options.base_url);
   }
 
   append(sm, url);
@@ -978,8 +978,8 @@ static inline bool append_named_url(StateMachine * sm, const char * url_start, c
 
   if (url_start[0] == '/' || url_start[0] == '#') {
     append(sm, "<a rel=\"nofollow\" class=\"dtext-link\" href=\"");
-    if (!sm->base_url.empty()) {
-      append(sm, sm->base_url);
+    if (!sm->options.base_url.empty()) {
+      append(sm, sm->options.base_url);
     }
   } else {
     append(sm, "<a rel=\"nofollow\" class=\"dtext-link dtext-external-link\" href=\"");
@@ -1025,13 +1025,13 @@ static inline void append_post_search_link(StateMachine * sm, const char * tag_s
 }
 
 static inline void append_block(StateMachine * sm, const char * a, const char * b) {
-  if (!sm->f_inline) {
+  if (!sm->options.f_inline) {
     append(sm, a, b);
   }
 }
 
 static inline void append_block(StateMachine * sm, const auto s) {
-  if (!sm->f_inline) {
+  if (!sm->options.f_inline) {
     append(sm, s);
   }
 }
@@ -1218,10 +1218,7 @@ StateMachine init_machine(const char * src, size_t len) {
     output_length *= 2;
   }
 
-  sm.f_inline = false;
-  sm.allow_color = false;
-  sm.max_thumbs = 0;
-
+  sm.options = DTextOptions {};
   sm.p = src;
   sm.pb = sm.p;
   sm.pe = sm.p + len;
@@ -1249,9 +1246,9 @@ StateMachine init_machine(const char * src, size_t len) {
 
 std::string parse_basic_inline(const char* dtext, const ssize_t length) {
     StateMachine sm = init_machine(dtext, length);
-    sm.f_inline = true;
-    sm.allow_color = false;
-    sm.max_thumbs = 0;
+    sm.options.f_inline = true;
+    sm.options.allow_color = false;
+    sm.options.max_thumbs = 0;
 
     sm.cs = dtext_en_basic_inline;
 

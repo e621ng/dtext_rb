@@ -13,12 +13,12 @@ static VALUE c_parse(VALUE self, VALUE input, VALUE f_inline, VALUE f_allow_colo
 
   StringValue(input);
   StateMachine sm = init_machine(RSTRING_PTR(input), RSTRING_LEN(input));
-  sm.f_inline = RTEST(f_inline);
-  sm.allow_color = RTEST(f_allow_color);
-  sm.max_thumbs = FIX2LONG(f_max_thumbs);
+  sm.options.f_inline = RTEST(f_inline);
+  sm.options.allow_color = RTEST(f_allow_color);
+  sm.options.max_thumbs = FIX2LONG(f_max_thumbs);
 
   if (!NIL_P(base_url)) {
-    sm.base_url = StringValueCStr(base_url); // base_url.to_str # raises ArgumentError if base_url contains null bytes.
+    sm.options.base_url = StringValueCStr(base_url); // base_url.to_str # raises ArgumentError if base_url contains null bytes.
   }
 
   if (!parse_helper(&sm)) {

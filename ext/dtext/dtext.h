@@ -37,11 +37,15 @@ typedef enum element_t {
   INLINE_SPOILER,
 } element_t;
 
-typedef struct StateMachine {
-  bool f_inline;
-  bool allow_color;
-  int max_thumbs;
+struct DTextOptions {
+  bool f_inline = false;
+  bool allow_color = false;
+  int max_thumbs = 25;
   std::string base_url;
+};
+
+typedef struct StateMachine {
+  DTextOptions options;
 
   size_t top;
   int cs;

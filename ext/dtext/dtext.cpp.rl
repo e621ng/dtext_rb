@@ -163,8 +163,13 @@ ws = ' ' | '\t';
 nonperiod = graph - ('.' | '"');
 header = 'h'i [123456] >mark_a1 %mark_a2 '.' ws*;
 header_with_id = 'h'i [123456] >mark_a1 %mark_a2 '#' nonperiod+ >mark_b1 %mark_b2 '.' ws*;
-aliased_section = '[section='i (nonbracket+ >mark_a1 %mark_a2) ']';
-aliased_section_expanded = '[section,expanded='i (nonbracket+ >mark_a1 %mark_a2) ']';
+
+section_open = '[section]'i;
+section_open_expanded = '[section,expanded]'i;
+section_close = '[/section]'i;
+section_open_aliased = '[section='i (nonbracket+ >mark_a1 %mark_a2) ']';
+section_open_aliased_expanded = '[section,expanded='i (nonbracket+ >mark_a1 %mark_a2) ']';
+
 internal_anchor = '[#' (nonbracket+ >mark_a1 %mark_a2) ']';
 
 list_item = '*'+ >mark_a1 %mark_a2 ws+ nonnewline+ >mark_b1 %mark_b2;
@@ -442,38 +447,19 @@ inline := |*
     }
   };
 
-  '[section]'i => {
+  (section_open | section_open_expanded | section_open_aliased | section_open_aliased_expanded) => {
     g_debug("inline [section]");
     dstack_rewind(sm);
-    fexec(sm->p - 8);
+    fexec sm->ts;
     fret;
   };
 
-  '[section,expanded]'i => {
-    g_debug("inline expanded [section]");
-    dstack_rewind(sm);
-    fexec(sm->p - 17);
-    fret;
-  };
-
-  '[/section]'i => {
+  section_close => {
     dstack_close_before_block(sm);
 
     if (dstack_close_block(sm, BLOCK_SECTION, "</details>")) {
       fret;
     }
-  };
-
-  aliased_section => {
-    dstack_rewind(sm);
-    fexec(sm->p - 9 - (sm->a2 - sm->a1));
-    fret;
-  };
-
-  aliased_section_expanded => {
-    dstack_rewind(sm);
-    fexec(sm->p - 18 - (sm->a2 - sm->a1));
-    fret;
   };
 
   '[/th]'i => {
@@ -771,19 +757,19 @@ main := |*
     fcall code;
   };
 
-  '[section]'i space* => {
+  section_open space* => {
     dstack_close_before_block(sm);
     dstack_open_block(sm, BLOCK_SECTION, "<details>");
     append(sm, "<summary></summary>");
   };
 
-  '[section,expanded]'i space* => {
+  section_open_expanded space* => {
     dstack_close_before_block(sm);
     dstack_open_block(sm, BLOCK_SECTION, "<details open>");
     append(sm, "<summary></summary>");
   };
 
-  aliased_section space* => {
+  section_open_aliased space* => {
     g_debug("block [section=]");
     dstack_open_block(sm, BLOCK_SECTION, "<details>");
     append(sm, "<summary>");
@@ -791,7 +777,7 @@ main := |*
     append(sm, "</summary>");
   };
 
-  aliased_section_expanded space* => {
+  section_open_aliased_expanded space* => {
     g_debug("block expanded [section=]");
     dstack_open_block(sm, BLOCK_SECTION, "<details open>");
     append(sm, "<summary>");

@@ -492,6 +492,9 @@ test2[/ltable]
 
   def test_expand
     assert_parse("<details><summary></summary><p>hello world</p></details>", "[section]hello world[/section]")
+
+    assert_parse("<p>inline <em>foo </em></p><details><summary></summary><p>blah blah</p></details>", "inline [i]foo [section]blah blah[/section]")
+    assert_parse('<p>inline <span class="spoiler">foo </span></p><details><summary></summary><p>blah blah</p></details>', "inline [spoiler]foo [section]blah blah[/section]")
   end
 
   def test_expand_missing_close
@@ -500,6 +503,9 @@ test2[/ltable]
 
   def test_aliased_expand
     assert_parse("<details><summary>hello</summary><p>blah blah</p></details>", "[section=hello]blah blah[/section]")
+
+    assert_parse("<p>inline <em>foo </em></p><details><summary>title</summary><p>blah blah</p></details>", "inline [i]foo [section=title]blah blah[/section]")
+    assert_parse('<p>inline <span class="spoiler">foo </span></p><details><summary>title</summary><p>blah blah</p></details>', "inline [spoiler]foo [section=title]blah blah[/section]")
   end
 
   def test_expand_with_nested_code

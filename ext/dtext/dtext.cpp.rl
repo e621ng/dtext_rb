@@ -444,7 +444,7 @@ inline := |*
 
   (section_open | section_open_expanded | section_open_aliased | section_open_aliased_expanded) => {
     g_debug("inline [section]");
-    dstack_rewind(sm);
+    dstack_close_leaf_blocks(sm);
     fexec sm->ts;
     fret;
   };
@@ -753,19 +753,20 @@ main := |*
   };
 
   section_open space* => {
-    dstack_close_before_block(sm);
+    dstack_close_leaf_blocks(sm);
     dstack_open_block(sm, BLOCK_SECTION, "<details>");
     append(sm, "<summary></summary>");
   };
 
   section_open_expanded space* => {
-    dstack_close_before_block(sm);
+    dstack_close_leaf_blocks(sm);
     dstack_open_block(sm, BLOCK_SECTION, "<details open>");
     append(sm, "<summary></summary>");
   };
 
   section_open_aliased space* => {
     g_debug("block [section=]");
+    dstack_close_leaf_blocks(sm);
     dstack_open_block(sm, BLOCK_SECTION, "<details>");
     append(sm, "<summary>");
     append_html_escaped(sm, sm->a1, sm->a2 - 1);
@@ -774,6 +775,7 @@ main := |*
 
   section_open_aliased_expanded space* => {
     g_debug("block expanded [section=]");
+    dstack_close_leaf_blocks(sm);
     dstack_open_block(sm, BLOCK_SECTION, "<details open>");
     append(sm, "<summary>");
     append_html_escaped(sm, sm->a1, sm->a2 - 1);

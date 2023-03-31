@@ -1,20 +1,19 @@
-require "csv"
 require "dtext/dtext"
+require "json"
 require "yaml"
+require "zlib"
 
 differences = []
-CSV.open("dtext_reference.csv", "r").each do |row|
-  input = row[0]
-  color_expected = row[1]
-  no_color_expected = row[2]
 
-  color = DText.parse(input, allow_color: true)[0]
-  no_color = DText.parse(input, allow_color: false)[0]
-  if color != color_expected
-    differences << [input, color_expected, color]
-  end
-  if no_color != no_color_expected
-    differences << [input, no_color_expected, no_color]
+Zlib::GzipReader.open("dtext_reference.json.gz") do |file|
+  file.each_line.with_index do |line, i|
+    puts i if i % 10_000 == 0
+    json = JSON.parse(line)
+
+    dtext = DText.parse(json["i"], allow_color: false)[0]
+    if dtext != json["o"]
+      differences << [json["id"], json["i"], json["o"], dtext]
+    end
   end
 end
 

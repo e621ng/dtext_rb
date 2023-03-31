@@ -5,5 +5,5 @@ pkg/
 *.so
 *~
 differences.yml
-dtext_reference.csv
-dtext.csv
+dtext_reference.json.gz
+dtext.json.gz

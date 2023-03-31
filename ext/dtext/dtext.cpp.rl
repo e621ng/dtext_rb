@@ -645,7 +645,7 @@ list := |*
   newline;
 
   any => {
-    dstack_rewind(sm);
+    dstack_close_leaf_blocks(sm);
     fhold;
     fret;
   };
@@ -1142,6 +1142,19 @@ static void dstack_close_all(StateMachine * sm) {
   while (!sm->dstack.empty()) {
     dstack_rewind(sm);
   }
+}
+
+// container blocks: [quote], [spoiler], [section], [tn]
+// leaf blocks: [code], [table], [td]?, [th]?, <h1>, <p>, <li>, <ul>
+static void dstack_close_leaf_blocks(StateMachine * sm) {
+  g_debug("dstack close leaf blocks");
+
+  while (!sm->dstack.empty() && !dstack_check(sm, BLOCK_QUOTE) && !dstack_check(sm, BLOCK_SPOILER) && !dstack_check(sm, BLOCK_SECTION) && !dstack_check(sm, BLOCK_TN)) {
+    dstack_rewind(sm);
+  }
+
+  sm->header_mode = false;
+  sm->list_nest = 0;
 }
 
 // Close all open tags up to and including the given tag.

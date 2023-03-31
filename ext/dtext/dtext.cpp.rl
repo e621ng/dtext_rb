@@ -328,20 +328,6 @@ inline := |*
   '[sub]'i  => { dstack_open_inline(sm, INLINE_SUB, "<sub>"); };
   '[/sub]'i => { dstack_close_inline(sm, INLINE_SUB, "</sub>"); };
 
-  '[tn]'i => {
-    dstack_open_inline(sm, INLINE_TN, "<span class=\"tn\">");
-  };
-
-  '[/tn]'i => {
-    dstack_close_before_block(sm);
-
-    if (dstack_check(sm, INLINE_TN)) {
-      dstack_close_inline(sm, INLINE_TN, "</span>");
-    } else if (dstack_close_block(sm, BLOCK_TN, "</p>")) {
-      fret;
-    }
-  };
-
   color_typed => {
     if(!sm->options.allow_color)
       fret;
@@ -819,11 +805,6 @@ main := |*
     fcall table;
   };
 
-  '[tn]'i => {
-    dstack_open_block(sm, BLOCK_TN, "<p class=\"tn\">");
-    fcall inline;
-  };
-
   list_item => {
     g_debug("block list");
     g_debug("  call list");
@@ -1110,9 +1091,7 @@ static void dstack_rewind(StateMachine * sm) {
     case INLINE_SUB: append(sm, "</sub>"); break;
     case INLINE_SUP: append(sm, "</sup>"); break;
     case INLINE_COLOR: append(sm, "</span>"); break;
-    case INLINE_TN: append(sm, "</span>"); break;
 
-    case BLOCK_TN: append_closing_p(sm); break;
     case BLOCK_TABLE: append_block(sm, "</table>"); break;
     case BLOCK_THEAD: append_block(sm, "</thead>"); break;
     case BLOCK_TBODY: append_block(sm, "</tbody>"); break;
@@ -1144,12 +1123,12 @@ static void dstack_close_all(StateMachine * sm) {
   }
 }
 
-// container blocks: [quote], [spoiler], [section], [tn]
+// container blocks: [quote], [spoiler], [section]
 // leaf blocks: [code], [table], [td]?, [th]?, <h1>, <p>, <li>, <ul>
 static void dstack_close_leaf_blocks(StateMachine * sm) {
   g_debug("dstack close leaf blocks");
 
-  while (!sm->dstack.empty() && !dstack_check(sm, BLOCK_QUOTE) && !dstack_check(sm, BLOCK_SPOILER) && !dstack_check(sm, BLOCK_SECTION) && !dstack_check(sm, BLOCK_TN)) {
+  while (!sm->dstack.empty() && !dstack_check(sm, BLOCK_QUOTE) && !dstack_check(sm, BLOCK_SPOILER) && !dstack_check(sm, BLOCK_SECTION)) {
     dstack_rewind(sm);
   }
 

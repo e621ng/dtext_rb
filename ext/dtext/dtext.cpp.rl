@@ -296,11 +296,6 @@ inline := |*
     append_unnamed_url(sm, sm->ts + 1, sm->te - 2);
   };
 
-  # probably a tag. examples include @.@ and @_@
-  '@' graph '@' => {
-    append_html_escaped(sm, sm->ts, sm->te - 1);
-  };
-
   newline list_item => {
     g_debug("inline list");
 

@@ -213,6 +213,9 @@ test2[/ltable]
     assert_parse("<p>inline </p><blockquote><p>blah blah</p></blockquote>", "inline [quote]blah blah[/quote]")
     assert_parse("<p>inline <em>foo </em></p><blockquote><p>blah blah</p></blockquote>", "inline [i]foo [quote]blah blah[/quote]")
     assert_parse('<p>inline <span class="spoiler">foo </span></p><blockquote><p>blah blah</p></blockquote>', "inline [spoiler]foo [quote]blah blah[/quote]")
+
+    assert_parse("<p>inline <em>foo</em></p><blockquote><p>blah blah</p></blockquote>", "inline [i]foo\n\n[quote]blah blah[/quote]")
+    assert_parse('<p>inline <span class="spoiler">foo </span></p><blockquote><p>blah blah</p></blockquote>', "inline [spoiler]\n\nfoo [quote]blah blah[/quote]")
   end
 
   def test_quote_blocks_with_list
@@ -497,6 +500,9 @@ test2[/ltable]
 
     assert_parse("<p>inline <em>foo </em></p><details><summary></summary><p>blah blah</p></details>", "inline [i]foo [section]blah blah[/section]")
     assert_parse('<p>inline <span class="spoiler">foo </span></p><details><summary></summary><p>blah blah</p></details>', "inline [spoiler]foo [section]blah blah[/section]")
+
+    assert_parse("<p>inline <em>foo</em></p><details><summary></summary><p>blah blah</p></details>", "inline [i]foo\n\n[section]blah blah[/section]")
+    assert_parse('<p>inline <span class="spoiler">foo</span></p><details><summary></summary><p>blah blah</p></details>', "inline [spoiler]foo\n\n[section]blah blah[/section]")
 
     assert_parse("<p>inline </p><details><summary></summary><p>blah blah</p></details>", "inline [section]blah blah[/section]")
 

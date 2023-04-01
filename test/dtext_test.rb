@@ -197,6 +197,18 @@ test2[/ltable]
 
   def test_quote_blocks
     assert_parse('<blockquote><p>test</p></blockquote>', "[quote]\ntest\n[/quote]")
+
+    assert_parse('<blockquote><p>test</p></blockquote>', "[quote]\ntest\n[/quote] ")
+    assert_parse('<blockquote><p>test</p></blockquote><p>blah</p>', "[quote]\ntest\n[/quote] blah")
+    assert_parse('<blockquote><p>test</p></blockquote><p>blah</p>', "[quote]\ntest\n[/quote] \nblah")
+    assert_parse('<blockquote><p>test</p></blockquote><p>blah</p>', "[quote]\ntest\n[/quote]\nblah")
+    assert_parse('<blockquote><p>test</p></blockquote><p> blah</p>', "[quote]\ntest\n[/quote]\n blah") # XXX should ignore space
+
+    assert_parse('<p>test<br>[/quote] blah</p>', "test\n[/quote] blah")
+    assert_parse('<p>test<br>[/quote]</p><ul><li>blah</li></ul>', "test\n[/quote]\n* blah")
+
+    assert_parse('<blockquote><p>test</p></blockquote><h4>See also</h4>', "[quote]\ntest\n[/quote]\nh4. See also")
+    assert_parse('<blockquote><p>test</p></blockquote><div class="spoiler"><p>blah</p></div>', "[quote]\ntest\n[/quote]\n[spoiler]blah[/spoiler]")
   end
 
   def test_quote_blocks_with_list

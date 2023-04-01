@@ -88,21 +88,12 @@ prepush {
   }
 }
 
-action mark_a1 {
-  sm->a1 = sm->p;
-}
+action mark_a1 { sm->a1 = sm->p; }
+action mark_a2 { sm->a2 = sm->p; }
+action mark_b1 { sm->b1 = sm->p; }
+action mark_b2 { sm->b2 = sm->p; }
 
-action mark_a2 {
-  sm->a2 = sm->p;
-}
-
-action mark_b1 {
-  sm->b1 = sm->p;
-}
-
-action mark_b2 {
-  sm->b2 = sm->p;
-}
+action in_quote { dstack_is_open(sm, BLOCK_QUOTE) }
 
 newline = '\r\n' | '\n';
 
@@ -169,6 +160,9 @@ section_open_expanded = '[section,expanded]'i;
 section_close = '[/section]'i;
 section_open_aliased = '[section='i (nonbracket+ >mark_a1 %mark_a2) ']';
 section_open_aliased_expanded = '[section,expanded='i (nonbracket+ >mark_a1 %mark_a2) ']';
+
+quote_open = '[quote]'i;
+quote_close = '[/quote'i (']' when in_quote);
 
 internal_anchor = '[#' (nonbracket+ >mark_a1 %mark_a2) ']';
 
@@ -419,27 +413,17 @@ inline := |*
     }
   };
 
-  '[quote]'i => {
+  quote_open => {
     g_debug("inline [quote]");
     dstack_close_before_block(sm);
     fexec sm->ts;
     fret;
   };
 
-  newline* '[/quote]'i space* => {
+  newline? quote_close ws* => {
     g_debug("inline [/quote]");
-    dstack_close_before_block(sm);
-
-    if (dstack_check(sm, BLOCK_LI)) {
-      dstack_close_list(sm);
-    }
-
-    if (dstack_is_open(sm, BLOCK_QUOTE)) {
-      dstack_close_until(sm, BLOCK_QUOTE);
-      fret;
-    } else {
-      append_block(sm, "[/quote]");
-    }
+    dstack_close_until(sm, BLOCK_QUOTE);
+    fret;
   };
 
   (section_open | section_open_expanded | section_open_aliased | section_open_aliased_expanded) => {
@@ -727,7 +711,7 @@ main := |*
     fcall inline;
   };
 
-  '[quote]'i space* => {
+  quote_open space* => {
     dstack_close_before_block(sm);
     dstack_open_block(sm, BLOCK_QUOTE, "<blockquote>");
   };

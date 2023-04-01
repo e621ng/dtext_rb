@@ -74,7 +74,6 @@ public:
   const char * b2 = NULL;
 
   bool header_mode = false;
-  int list_nest = 0;
 
   std::vector<long> posts;
   std::string output;

@@ -346,6 +346,7 @@ test2[/ltable]
     assert_parse('<ul><li>a</li></ul>', '* a')
     assert_parse('<ul><li>a</li><li>b</li></ul>', "* a\n* b")
     assert_parse('<ul><li>a</li><li>b</li><li>c</li></ul>', "* a\n* b\n* c")
+    assert_parse('<ul><li>a</li></ul><p> </p>', "* a\n ") # XXX should strip space
 
     assert_parse('<ul><li>a</li><li>b</li></ul>', "* a\r\n* b")
     assert_parse('<ul><li>a</li></ul><ul><li>b</li></ul>', "* a\n\n* b")
@@ -357,34 +358,24 @@ test2[/ltable]
     assert_parse('<ul><ul><ul><li>a</li></ul></ul><li>b</li></ul>', "*** a\n* b")
     assert_parse('<ul><ul><ul><li>a</li></ul></ul></ul>', "*** a")
 
-    # assert_parse('<ul><li>a</li></ul><p>b</p><ul><li>c</li></ul>', "* a\nb\n* c")
-    assert_parse('<ul><li>a<br>b</li><li>c</li></ul>', "* a\nb\n* c") # XXX wrong?
+    assert_parse('<ul><li>a</li></ul><p>b</p><ul><li>c</li></ul>', "* a\nb\n* c")
 
     assert_parse('<p>a<br>b</p><ul><li>c</li><li>d</li></ul>', "a\nb\n* c\n* d")
-    assert_parse('<p>a</p><ul><li>b<br>c</li><li>d<br>e</li></ul><p>another one</p>', "a\n* b\nc\n* d\ne\n\nanother one")
-    assert_parse('<p>a</p><ul><li>b<br>c</li><ul><li>d<br>e</li></ul></ul><p>another one</p>', "a\n* b\nc\n** d\ne\n\nanother one")
+    assert_parse('<p>a</p><ul><li>b</li></ul><p>c</p><ul><li>d</li></ul><p>e</p><p>another one</p>', "a\n* b\nc\n* d\ne\n\nanother one")
+    assert_parse('<p>a</p><ul><li>b</li></ul><p>c</p><ul><ul><li>d</li></ul></ul><p>e</p><p>another one</p>', "a\n* b\nc\n** d\ne\n\nanother one")
 
     assert_parse('<ul><li><a class="dtext-link dtext-id-link dtext-post-id-link" href="/posts/1">post #1</a></li></ul>', "* post #1")
 
     assert_parse('<ul><li><em>a</em></li><li>b</li></ul>', "* [i]a[/i]\n* b")
-
-    # assert_parse('<ul><li><em>a</em></li><li>b</li></ul>', "* [i]a\n* b")
-    assert_parse('<ul><li><em>a<li>b</li></em></li></ul>', "* [i]a\n* b") # XXX wrong
-
-    # assert_parse('<p><em>a</em><ul><li>a<li>b</li></li></ul>', "[i]a\n* b\n* c")
-    assert_parse('<p><em>a<ul><li>b</li><li>c</li></ul></em></p>', "[i]a\n* b\n* c") # XXX wrong
+    assert_parse('<ul><li><em>a</em></li><li>b</li></ul>', "* [i]a\n* b")
+    assert_parse('<p><em>a</em></p><ul><li>b</li><li>c</li></ul>', "[i]a\n* b\n* c")
 
     # assert_parse('<ul><li></li></ul><h4>See also</h4><ul><li>a</li></ul>', "* h4. See also\n* a")
     assert_parse('<ul><li>h4. See also</li><li>a</li></ul>', "* h4. See also\n* a") # XXX wrong?
 
-    # assert_parse('<ul><li>a</li></ul><h4>See also</h4>', "* a\nh4. See also")
-    assert_parse('<ul><li>a<br>h4. See also</li></ul>', "* a\nh4. See also") # XXX wrong
-
-    # assert_parse('<h4><em>See also</em></h4><ul><li>a</li></ul>', "h4. [i]See also\n* a")
-    assert_parse('<h4><em>See also</em><ul><li>a</li></ul></h4>', "h4. [i]See also\n* a") # XXX wrong
-
-    # assert_parse('<ul><li><em>a</em></li></ul><h4>See also</h4>', "* [i]a\nh4. See also")
-    assert_parse('<ul><li><em>a<br>h4. See also</em></li></ul>', "* [i]a\nh4. See also") # XXX wrong
+    assert_parse('<ul><li>a</li></ul><h4>See also</h4>', "* a\nh4. See also")
+    assert_parse('<h4><em>See also</em></h4><ul><li>a</li></ul>', "h4. [i]See also\n* a")
+    assert_parse('<ul><li><em>a</em></li></ul><h4>See also</h4>', "* [i]a\nh4. See also")
 
     assert_parse('<h4>See also</h4><ul><li>a</li></ul>', "h4. See also\n* a")
     assert_parse('<h4>See also</h4><ul><li>a</li><li>h4. External links</li></ul>', "h4. See also\n* a\n* h4. External links")
@@ -402,11 +393,6 @@ test2[/ltable]
     assert_parse('<p>***</p>', "***")
     assert_parse('<p>*<br>*<br>*</p>', "*\n*\n*")
     assert_parse('<p>* <br>blah</p>', "* \r\nblah")
-  end
-
-  def test_lists_with_multiline_items
-    assert_parse('<p>a</p><ul><li>b<br>c</li><li>d<br>e</li></ul><p>another one</p>', "a\n* b\nc\n* d\ne\n\nanother one")
-    assert_parse('<p>a</p><ul><li>b<br>c</li><ul><li>d<br>e</li></ul></ul><p>another one</p>', "a\n* b\nc\n** d\ne\n\nanother one")
   end
 
   def test_inline_tags
@@ -561,11 +547,6 @@ test2[/ltable]
     dtext = '(blah <https://en.wikipedia.org/wiki/Orange_(fruit)>).'
     html = '<p>(blah <a rel="nofollow" class="dtext-link" href="https://en.wikipedia.org/wiki/Orange_(fruit)">https://en.wikipedia.org/wiki/Orange_(fruit)</a>).</p>'
     assert_parse(html, dtext)
-  end
-
-  def test_stack_depth_limit
-    e = assert_raises(DText::Error) { DText.parse("* foo\n" * 513) }
-    assert_equal("too many nested elements", e.message)
   end
 
   def test_null_bytes

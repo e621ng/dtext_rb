@@ -123,36 +123,21 @@ test2[/ltable]
     assert_parse("<p><strong>[[</strong>tag<strong>]]</strong></p>", "[b][[[/b]tag[b]]][/b]")
   end
 
-  def test_spoilers_inline
+  def test_spoilers
     assert_parse("<p>this is <span class=\"spoiler\">an inline spoiler</span>.</p>", "this is [spoiler]an inline spoiler[/spoiler].")
-  end
-
-  def test_spoilers_inline_plural
     assert_parse("<p>this is <span class=\"spoiler\">an inline spoiler</span>.</p>", "this is [SPOILERS]an inline spoiler[/SPOILERS].")
-  end
-
-  def test_spoilers_block
     assert_parse("<p>this is</p><div class=\"spoiler\"><p>a block spoiler</p></div><p>.</p>", "this is\n\n[spoiler]\na block spoiler\n[/spoiler].")
-  end
-
-  def test_spoilers_block_plural
     assert_parse("<p>this is</p><div class=\"spoiler\"><p>a block spoiler</p></div><p>.</p>", "this is\n\n[SPOILERS]\na block spoiler\n[/SPOILERS].")
-  end
-
-  def test_spoilers_with_no_closing_tag_1
     assert_parse("<div class=\"spoiler\"><p>this is a spoiler with no closing tag</p><p>new text</p></div>", "[spoiler]this is a spoiler with no closing tag\n\nnew text")
-  end
-
-  def test_spoilers_with_no_closing_tag_2
     assert_parse("<div class=\"spoiler\"><p>this is a spoiler with no closing tag<br>new text</p></div>", "[spoiler]this is a spoiler with no closing tag\nnew text")
-  end
-
-  def test_spoilers_with_no_closing_tag_block
     assert_parse("<div class=\"spoiler\"><p>this is a block spoiler with no closing tag</p></div>", "[spoiler]\nthis is a block spoiler with no closing tag")
-  end
-
-  def test_spoilers_nested
     assert_parse("<div class=\"spoiler\"><p>this is <span class=\"spoiler\">a nested</span> spoiler</p></div>", "[spoiler]this is [spoiler]a nested[/spoiler] spoiler[/spoiler]")
+
+    # assert_parse('<div class="spoiler"><h4>Blah</h4></div>', "[spoiler]\nh4. Blah\n[/spoiler]")
+    assert_parse(%{<div class="spoiler"><h4>Blah\n[/spoiler]</h4></div>}, "[spoiler]\nh4. Blah\n[/spoiler]") # XXX wrong
+
+    # assert_parse('<p>First sentence</p><p>[/spoiler] Second sentence.</p>', "First sentence\n\n[/spoiler] Second sentence.")
+    assert_parse("<p>First sentence</p>\n\n[/spoiler] Second sentence.", "First sentence\n\n[/spoiler] Second sentence.") # XXX wrong
   end
 
   def test_sub_sup
@@ -215,7 +200,7 @@ test2[/ltable]
   end
 
   def test_quote_blocks_with_list
-    assert_parse("<blockquote><ul><li>hello</li><li>there<br></li></ul></blockquote><p>abc</p>", "[quote]\n* hello\n* there\n[/quote]\nabc")
+    assert_parse("<blockquote><ul><li>hello</li><li>there</li></ul></blockquote><p>abc</p>", "[quote]\n* hello\n* there\n[/quote]\nabc")
     assert_parse("<blockquote><ul><li>hello</li><li>there</li></ul></blockquote><p>abc</p>", "[quote]\n* hello\n* there\n\n[/quote]\nabc")
   end
 
@@ -237,7 +222,9 @@ test2[/ltable]
   def test_quote_blocks_nested_spoiler
     assert_parse("<blockquote><p>a<br><span class=\"spoiler\">blah</span><br>c</p></blockquote>", "[quote]\na\n[spoiler]blah[/spoiler]\nc[/quote]")
     assert_parse("<blockquote><p>a</p><div class=\"spoiler\"><p>blah</p></div><p>c</p></blockquote>", "[quote]\na\n\n[spoiler]blah[/spoiler]\n\nc[/quote]")
-    assert_parse('<details><summary></summary><div class="spoiler"><ul><li>blah<br></li></ul></div></details>', "[section]\n[spoiler]\n* blah\n[/spoiler]\n[/section]")
+    assert_parse('<details><summary></summary><div class="spoiler"><ul><li>blah</li></ul></div></details>', "[section]\n[spoiler]\n* blah\n[/spoiler]\n[/section]")
+
+    assert_parse('<details><summary></summary><div class="spoiler"><ul><li>blah</li></ul></div></details>', "[section]\n[spoiler]\n* blah\n[/spoiler]\n[/section]")
   end
 
   def test_quote_blocks_nested_expand
@@ -381,10 +368,9 @@ test2[/ltable]
     assert_parse('<h4>See also</h4><ul><li>a</li><li>h4. External links</li></ul>', "h4. See also\n* a\n* h4. External links")
 
     # assert_parse('<p>a</p><div class="spoiler"><ul><li>b</li><li>c</li></ul></div><p>d</p>', "a\n[spoilers]\n* b\n* c\n[/spoilers]\nd")
-    assert_parse('<p>a<br><span class="spoiler"><ul><li>b</li><li>c<br></li></ul></span><br>d</p>', "a\n[spoilers]\n* b\n* c\n[/spoilers]\nd") # XXX wrong
 
-    assert_parse('<p>a</p><blockquote><ul><li>b</li><li>c<br></li></ul></blockquote><p>d</p>', "a\n[quote]\n* b\n* c\n[/quote]\nd")
-    assert_parse('<p>a</p><details><summary></summary><ul><li>b</li><li>c<br></li></ul></details><p>d</p>', "a\n[section]\n* b\n* c\n[/section]\nd")
+    assert_parse('<p>a</p><blockquote><ul><li>b</li><li>c</li></ul></blockquote><p>d</p>', "a\n[quote]\n* b\n* c\n[/quote]\nd")
+    assert_parse('<p>a</p><details><summary></summary><ul><li>b</li><li>c</li></ul></details><p>d</p>', "a\n[section]\n* b\n* c\n[/section]\nd")
 
     assert_parse('<p>a</p><blockquote><ul><li>b</li><li>c</li></ul><p>d</p></blockquote>', "a\n[quote]\n* b\n* c\n\nd")
     assert_parse('<p>a</p><details><summary></summary><ul><li>b</li><li>c</li></ul><p>d</p></details>', "a\n[section]\n* b\n* c\n\nd")
@@ -495,6 +481,8 @@ test2[/ltable]
 
     assert_parse("<p>inline <em>foo </em></p><details><summary></summary><p>blah blah</p></details>", "inline [i]foo [section]blah blah[/section]")
     assert_parse('<p>inline <span class="spoiler">foo </span></p><details><summary></summary><p>blah blah</p></details>', "inline [spoiler]foo [section]blah blah[/section]")
+
+    assert_parse("<p>inline </p><details><summary></summary><p>blah blah</p></details>", "inline [section]blah blah[/section]")
   end
 
   def test_expand_missing_close
@@ -513,7 +501,7 @@ test2[/ltable]
   end
 
   def test_expand_with_nested_list
-    assert_parse("<details><summary></summary><ul><li>a</li><li>b<br></li></ul></details><p>c</p>", "[section]\n* a\n* b\n[/section]\nc")
+    assert_parse("<details><summary></summary><ul><li>a</li><li>b</li></ul></details><p>c</p>", "[section]\n* a\n* b\n[/section]\nc")
   end
 
   def test_inline_mode

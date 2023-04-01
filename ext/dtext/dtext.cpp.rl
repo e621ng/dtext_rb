@@ -361,7 +361,7 @@ inline := |*
     dstack_open_inline(sm, INLINE_SPOILER, "<span class=\"spoiler\">");
   };
 
-  spoilers_close => {
+  newline* spoilers_close => {
     g_debug("inline [/spoiler]");
     dstack_close_before_block(sm);
 
@@ -426,7 +426,7 @@ inline := |*
     fret;
   };
 
-  '[/quote]'i space* => {
+  newline* '[/quote]'i space* => {
     g_debug("inline [/quote]");
     dstack_close_before_block(sm);
 
@@ -449,7 +449,7 @@ inline := |*
     fret;
   };
 
-  section_close => {
+  newline* section_close => {
     dstack_close_before_block(sm);
 
     if (dstack_close_block(sm, BLOCK_SECTION, "</details>")) {
@@ -463,7 +463,7 @@ inline := |*
     }
   };
 
-  '[/td]'i => {
+  newline* '[/td]'i => {
     if (dstack_close_block(sm, BLOCK_TD, "</td>")) {
       fret;
     }

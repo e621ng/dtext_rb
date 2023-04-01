@@ -495,6 +495,20 @@ test2[/ltable]
     assert_parse('<p>inline <span class="spoiler">foo </span></p><details><summary></summary><p>blah blah</p></details>', "inline [spoiler]foo [section]blah blah[/section]")
 
     assert_parse("<p>inline </p><details><summary></summary><p>blah blah</p></details>", "inline [section]blah blah[/section]")
+
+    assert_parse('<details><summary></summary><p>test</p></details>', "[section]\ntest\n[/section] ")
+    assert_parse('<details><summary></summary><p>test</p></details><p>blah</p>', "[section]\ntest\n[/section] blah")
+    assert_parse('<details><summary></summary><p>test</p></details><p>blah</p>', "[section]\ntest\n[/section] \nblah")
+    assert_parse('<details><summary></summary><p>test</p></details><p>blah</p>', "[section]\ntest\n[/section]\nblah")
+    assert_parse('<details><summary></summary><p>test</p></details><p> blah</p>', "[section]\ntest\n[/section]\n blah") # XXX should ignore space
+
+    assert_parse("<p>[/section]</p>", "[/section]")
+    assert_parse("<p>foo [/section] bar</p>", "foo [/section] bar")
+    assert_parse('<p>test<br>[/section] blah</p>', "test\n[/section] blah")
+    assert_parse('<p>test<br>[/section]</p><ul><li>blah</li></ul>', "test\n[/section]\n* blah")
+
+    assert_parse('<details><summary></summary><p>test</p></details><h4>See also</h4>', "[section]\ntest\n[/section]\nh4. See also")
+    assert_parse('<details><summary></summary><p>test</p></details><div class="spoiler"><p>blah</p></div>', "[section]\ntest\n[/section]\n[spoiler]blah[/spoiler]")
   end
 
   def test_expand_missing_close

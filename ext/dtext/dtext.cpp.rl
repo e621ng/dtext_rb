@@ -94,6 +94,7 @@ action mark_b1 { sm->b1 = sm->p; }
 action mark_b2 { sm->b2 = sm->p; }
 
 action in_quote { dstack_is_open(sm, BLOCK_QUOTE) }
+action in_section { dstack_is_open(sm, BLOCK_SECTION) }
 
 newline = '\r\n' | '\n';
 
@@ -157,7 +158,7 @@ header_with_id = 'h'i [123456] >mark_a1 %mark_a2 '#' nonperiod+ >mark_b1 %mark_b
 
 section_open = '[section]'i;
 section_open_expanded = '[section,expanded]'i;
-section_close = '[/section]'i;
+section_close = '[/section'i (']' when in_section);
 section_open_aliased = '[section='i (nonbracket+ >mark_a1 %mark_a2) ']';
 section_open_aliased_expanded = '[section,expanded='i (nonbracket+ >mark_a1 %mark_a2) ']';
 
@@ -433,12 +434,10 @@ inline := |*
     fret;
   };
 
-  newline* section_close => {
-    dstack_close_before_block(sm);
-
-    if (dstack_close_block(sm, BLOCK_SECTION, "</details>")) {
-      fret;
-    }
+  newline? section_close ws* => {
+    g_debug("inline [/expand]");
+    dstack_close_until(sm, BLOCK_SECTION);
+    fret;
   };
 
   '[/th]'i => {

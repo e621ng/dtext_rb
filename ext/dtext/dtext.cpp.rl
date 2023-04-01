@@ -416,7 +416,7 @@ inline := |*
 
   quote_open => {
     g_debug("inline [quote]");
-    dstack_close_before_block(sm);
+    dstack_close_leaf_blocks(sm);
     fexec sm->ts;
     fret;
   };

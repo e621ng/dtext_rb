@@ -27,7 +27,8 @@ static VALUE c_parse(VALUE self, VALUE input, VALUE f_inline, VALUE f_allow_colo
   }
 
   try {
-    auto result = StateMachine::parse_dtext(RSTRING_PTR(input), RSTRING_LEN(input), options);
+    std::string_view dtext(RSTRING_PTR(input), RSTRING_LEN(input));
+    auto result = StateMachine::parse_dtext(dtext, options);
 
     VALUE retStr = rb_utf8_str_new(result.dtext.c_str(), result.dtext.size());
     VALUE retPostIds = rb_ary_new_capa(result.posts.size());

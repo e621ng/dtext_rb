@@ -54,8 +54,8 @@ struct DTextResult {
 
 class StateMachine {
 public:
-  static DTextResult parse_dtext(const char* src, const size_t len, DTextOptions options);
-  static std::string parse_basic_inline(const char* src, const size_t len);
+  static DTextResult parse_dtext(const std::string_view dtext, DTextOptions options);
+  static std::string parse_basic_inline(const std::string_view dtext);
 
   DTextOptions options;
 
@@ -81,7 +81,7 @@ public:
   std::vector<element_t> dstack;
 
 private:
-  StateMachine(const char * src, size_t len, int initial_state, const DTextOptions options);
+  StateMachine(const std::string_view dtext, int initial_state, const DTextOptions options);
   DTextResult parse();
 };
 

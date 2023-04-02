@@ -564,43 +564,13 @@ main := |*
   };
 
   header => {
+    static element_t blocks[] = { BLOCK_H1, BLOCK_H2, BLOCK_H3, BLOCK_H4, BLOCK_H5, BLOCK_H6 };
     char header = *sm->a1;
+    element_t block = blocks[header - '1'];
 
-    if (sm->options.f_inline) {
-      header = '6';
-    }
-
-    switch (header) {
-      case '1':
-        dstack_push(sm, BLOCK_H1);
-        append_block(sm, "<h1>");
-        break;
-
-      case '2':
-        dstack_push(sm, BLOCK_H2);
-        append_block(sm, "<h2>");
-        break;
-
-      case '3':
-        dstack_push(sm, BLOCK_H3);
-        append_block(sm, "<h3>");
-        break;
-
-      case '4':
-        dstack_push(sm, BLOCK_H4);
-        append_block(sm, "<h4>");
-        break;
-
-      case '5':
-        dstack_push(sm, BLOCK_H5);
-        append_block(sm, "<h5>");
-        break;
-
-      case '6':
-        dstack_push(sm, BLOCK_H6);
-        append_block(sm, "<h6>");
-        break;
-    }
+    dstack_open_block(sm, block, "<h");
+    append_block(sm, header);
+    append_block(sm, ">");
 
     sm->header_mode = true;
     fcall inline;

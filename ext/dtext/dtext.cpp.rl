@@ -919,15 +919,15 @@ static void dstack_rewind(StateMachine * sm) {
     case BLOCK_TABLE: append_block(sm, "</table>"); break;
     case BLOCK_THEAD: append_block(sm, "</thead>"); break;
     case BLOCK_TBODY: append_block(sm, "</tbody>"); break;
-    case BLOCK_TR: append_block(sm, "</tr>"); break;
-    case BLOCK_UL: append_block(sm, "</ul>"); break;
-    case BLOCK_LI: append_block(sm, "</li>"); break;
-    case BLOCK_H6: append_block(sm, "</h6>"); break;
-    case BLOCK_H5: append_block(sm, "</h5>"); break;
-    case BLOCK_H4: append_block(sm, "</h4>"); break;
-    case BLOCK_H3: append_block(sm, "</h3>"); break;
-    case BLOCK_H2: append_block(sm, "</h2>"); break;
-    case BLOCK_H1: append_block(sm, "</h1>"); break;
+    case BLOCK_TR: append_block(sm, "</tr>"); sm->header_mode = false; break;
+    case BLOCK_UL: append_block(sm, "</ul>"); sm->header_mode = false; break;
+    case BLOCK_LI: append_block(sm, "</li>"); sm->header_mode = false; break;
+    case BLOCK_H6: append_block(sm, "</h6>"); sm->header_mode = false; break;
+    case BLOCK_H5: append_block(sm, "</h5>"); sm->header_mode = false; break;
+    case BLOCK_H4: append_block(sm, "</h4>"); sm->header_mode = false; break;
+    case BLOCK_H3: append_block(sm, "</h3>"); sm->header_mode = false; break;
+    case BLOCK_H2: append_block(sm, "</h2>"); sm->header_mode = false; break;
+    case BLOCK_H1: append_block(sm, "</h1>"); sm->header_mode = false; break;
 
     case DSTACK_EMPTY: break;
   }
@@ -955,8 +955,6 @@ static void dstack_close_leaf_blocks(StateMachine * sm) {
   while (!sm->dstack.empty() && !dstack_check(sm, BLOCK_QUOTE) && !dstack_check(sm, BLOCK_SPOILER) && !dstack_check(sm, BLOCK_SECTION)) {
     dstack_rewind(sm);
   }
-
-  sm->header_mode = false;
 }
 
 // Close all open tags up to and including the given tag.

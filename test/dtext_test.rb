@@ -186,11 +186,7 @@ test2[/ltable]
     assert_parse("<ul><li>a</li></ul><h1>header</h1><ul><li>list</li></ul>", "* a\n\nh1. header\n* list")
     assert_parse("<p>blah h1. blah</p>", "blah h1. blah")
 
-    assert_parse("<h1 id=\"dtext-blah-blah\">header</h1>", "h1#blah-blah. header")
-    assert_parse("<p>h1#blah-&quot;blah. header</p>", "h1#blah-\"blah. header")
-
     assert_parse('<p>text</p><h1>header</h1>', "text\nh1. header")
-    assert_parse('<p>text</p><h1 id="dtext-blah">header</h1>', "text\nh1#blah. header")
     assert_parse('<p><em>text</em></p><h1>header</h1>', "[i]text\nh1. header")
     assert_parse('<div class="spoiler"><p>text</p><h1>header</h1></div>', "[spoiler]text\nh1. header")
     assert_parse('<h1>header</h1><p>text</p>', "h1. header\ntext")

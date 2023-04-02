@@ -155,7 +155,6 @@ ticket_id = 'ticket #'i id;
 ws = ' ' | '\t';
 nonperiod = graph - ('.' | '"');
 header = 'h'i [123456] >mark_a1 %mark_a2 '.' ws*;
-header_with_id = 'h'i [123456] >mark_a1 %mark_a2 '#' nonperiod+ >mark_b1 %mark_b2 '.' ws*;
 
 section_open = '[section]'i;
 section_open_expanded = '[section,expanded]'i;
@@ -358,7 +357,7 @@ inline := |*
   # these are block level elements that should kick us out of the inline
   # scanner
 
-  newline (header | header_with_id) => {
+  newline header => {
     dstack_close_leaf_blocks(sm);
     fexec sm->ts;
     fret;
@@ -562,62 +561,6 @@ main := |*
   '`' => {
     append(sm, "<span class=\"inline-code\">");
     fcall inline_code;
-  };
-
-  header_with_id => {
-    char header = *sm->a1;
-    std::string id_name = "dtext-" + std::string(sm->b1, sm->b2 - sm->b1);
-
-    if (sm->options.f_inline) {
-      header = '6';
-    }
-
-    switch (header) {
-      case '1':
-        dstack_push(sm, BLOCK_H1);
-        append_block(sm, "<h1 id=\"");
-        append_block(sm, id_name);
-        append_block(sm, "\">");
-        break;
-
-      case '2':
-        dstack_push(sm, BLOCK_H2);
-        append_block(sm, "<h2 id=\"");
-        append_block(sm, id_name);
-        append_block(sm, "\">");
-        break;
-
-      case '3':
-        dstack_push(sm, BLOCK_H3);
-        append_block(sm, "<h3 id=\"");
-        append_block(sm, id_name);
-        append_block(sm, "\">");
-        break;
-
-      case '4':
-        dstack_push(sm, BLOCK_H4);
-        append_block(sm, "<h4 id=\"");
-        append_block(sm, id_name);
-        append_block(sm, "\">");
-        break;
-
-      case '5':
-        dstack_push(sm, BLOCK_H5);
-        append_block(sm, "<h5 id=\"");
-        append_block(sm, id_name);
-        append_block(sm, "\">");
-        break;
-
-      case '6':
-        dstack_push(sm, BLOCK_H6);
-        append_block(sm, "<h6 id=\"");
-        append_block(sm, id_name);
-        append_block(sm, "\">");
-        break;
-    }
-
-    sm->header_mode = true;
-    fcall inline;
   };
 
   header => {

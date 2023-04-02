@@ -684,7 +684,7 @@ main := |*
   };
 
   '[code]'i space* => {
-    dstack_close_before_block(sm);
+    dstack_close_leaf_blocks(sm);
     dstack_open_block(sm, BLOCK_CODE, "<pre>");
     fcall code;
   };
@@ -720,7 +720,7 @@ main := |*
   };
 
   '[table]'i => {
-    dstack_close_before_block(sm);
+    dstack_close_leaf_blocks(sm);
     dstack_open_block(sm, BLOCK_TABLE, "<table class=\"striped\">");
     fcall table;
   };

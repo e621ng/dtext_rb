@@ -358,6 +358,12 @@ inline := |*
   # these are block level elements that should kick us out of the inline
   # scanner
 
+  newline (header | header_with_id) => {
+    dstack_close_leaf_blocks(sm);
+    fexec sm->ts;
+    fret;
+  };
+
   '[table]'i => {
     dstack_close_before_block(sm);
     fexec sm->ts;

@@ -311,32 +311,35 @@ inline := |*
   '[/sub]'i => { dstack_close_inline(sm, INLINE_SUB, "</sub>"); };
 
   color_typed => {
-    if(!sm->options.allow_color)
-      fret;
-    dstack_push(sm, INLINE_COLOR);
-    append(sm, "<span class=\"dtext-color-");
-    append_uri_escaped(sm, { sm->a1, sm->a2 });
-    append(sm, "\">");
+    if(sm->options.allow_color) {
+      dstack_push(sm, INLINE_COLOR);
+      append(sm, "<span class=\"dtext-color-");
+      append_uri_escaped(sm, { sm->a1, sm->a2 });
+      append(sm, "\">");
+    }
+    fgoto inline;
   };
 
   color_open => {
-    if(!sm->options.allow_color)
-      fret;
-    dstack_push(sm, INLINE_COLOR);
-    append(sm, "<span class=\"dtext-color\" style=\"color:");
-    if(sm->a1[0] == '#') {
-      append(sm, "#");
-      append_uri_escaped(sm, { sm->a1 + 1, sm->a2 });
-    } else {
-      append_uri_escaped(sm, { sm->a1, sm->a2 });
+    if(sm->options.allow_color) {
+      dstack_push(sm, INLINE_COLOR);
+      append(sm, "<span class=\"dtext-color\" style=\"color:");
+      if(sm->a1[0] == '#') {
+        append(sm, "#");
+        append_uri_escaped(sm, { sm->a1 + 1, sm->a2 });
+      } else {
+        append_uri_escaped(sm, { sm->a1, sm->a2 });
+      }
+      append(sm, "\">");
     }
-    append(sm, "\">");
+    fgoto inline;
   };
 
   color_close => {
-    if(!sm->options.allow_color)
-      fret;
-    dstack_close_inline(sm, INLINE_COLOR, "</span>");
+    if(sm->options.allow_color) {
+      dstack_close_inline(sm, INLINE_COLOR, "</span>");
+    }
+    fgoto inline;
   };
 
   spoilers_open => {

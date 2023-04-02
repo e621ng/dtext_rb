@@ -158,11 +158,19 @@ test2[/ltable]
     assert_color("<p><span class=\"dtext-color\" style=\"color:", "#ccc")
     assert_color("<p><span class=\"dtext-color\" style=\"color:", "#12345")
     assert_color("<p><span class=\"dtext-color\" style=\"color:", "#1a1")
+
+    assert_parse('<ul><li><span class="dtext-color" style="color:lime">test</span> abc</li></ul>', "* [color=lime]test[/color] abc", allow_color: true)
+    assert_parse('<h1><span class="dtext-color" style="color:lime">test</span></h1>', "h1.[color=lime]test[/color]", allow_color: true)
+    # assert_parse('<span class="dtext-color" style="color:lime"><h1>test</h1></span>', "[color=lime]h1.test[/color]", allow_color: true)
   end
 
   def test_color_not_allowed
     assert_parse("<p>test</p>", "[color=invalid]test[/color]")
     assert_parse("<p>test</p>", "[color=#123456]test[/color]")
+
+    assert_parse('<ul><li>test abc</li></ul>', "* [color=lime]test[/color] abc")
+    assert_parse('<h1>test</h1>', "h1.[color=lime]test[/color]")
+    # assert_parse('<h1>test</h1>', "[color=lime]h1.test[/color]")
   end
 
   def test_nested_inline_code

@@ -447,6 +447,8 @@ test2[/ltable]
 
   def test_internal_anchor
     assert_parse("<p><a id=\"b\"></a></p>", "[#B]")
+
+    assert_parse("<p>[#test.abc]</p>", "[#test.abc]")
   end
 
   def text_note_id_link

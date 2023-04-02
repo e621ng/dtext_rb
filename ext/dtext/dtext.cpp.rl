@@ -165,7 +165,7 @@ section_open_aliased_expanded = '[section,expanded='i (nonbracket+ >mark_a1 %mar
 quote_open = '[quote]'i;
 quote_close = '[/quote'i (']' when in_quote);
 
-internal_anchor = '[#' (nonbracket+ >mark_a1 %mark_a2) ']';
+internal_anchor = '[#' ((alnum | [_\-])+ >mark_a1 %mark_a2) ']';
 
 list_item = '*'+ >mark_a1 %mark_a2 ws+ nonnewline+ >mark_b1 %mark_b2;
 

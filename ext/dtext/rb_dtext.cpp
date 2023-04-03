@@ -48,7 +48,7 @@ static VALUE c_parse(VALUE self, VALUE input, VALUE f_inline, VALUE f_allow_colo
 }
 
 extern "C" void Init_dtext() {
-  cDText = rb_define_module("DText");
+  cDText = rb_define_class("DText", rb_cObject);
   cDTextError = rb_define_class_under(cDText, "Error", rb_eStandardError);
   rb_define_singleton_method(cDText, "c_parse", c_parse, 5);
 }

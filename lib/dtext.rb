@@ -1,6 +1,6 @@
 require "dtext/dtext"
 
-module DText
+class DText
   class Error < StandardError; end
 
   def self.parse(str, inline: false, allow_color: false, max_thumbs: 25, base_url: nil)

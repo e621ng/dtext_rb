@@ -10,7 +10,7 @@ There's a `docker-compose.yml` which you can use to quickly run the most common 
 
 ## Releasing a new version for usage in e621
 
-Commit the changes to `dtext.rl` and the resuling changes in `dtext.c`. Bump the version number in `dtext_rb.gemspec` and `VERSION`. After that is all done you can `bundle lock` in the e6 repository. It should pick up on the increased version.
+Commit the changes to `dtext.cpp.rl` and the resuling changes in `dtext.cpp`. Bump the version number in `lib/dtext/version.rb`. After that is all done you can `bundle lock` in the e6 repository. It should pick up on the increased version.
 
 To test these changes locally commit them and update the `Gemfile`s dtext entry. Specifying the commit hash allows you to rebuild the container without having to also increment the version number every time. Don't forget to `bundle lock` before rebuilding.  
 `gem "dtext_rb", git: "https://github.com/YOUR_FORK/dtext_rb.git", ref: "YOUR_COMMIT_HASH"`

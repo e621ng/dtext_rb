@@ -1,4 +1,5 @@
 require "dtext/dtext"
+require "dtext/version"
 
 class DText
   class Error < StandardError; end

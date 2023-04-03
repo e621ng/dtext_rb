@@ -1,3 +1,8 @@
+PATH
+  remote: .
+  specs:
+    dtext_rb (1.10.21)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -10,6 +15,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  dtext_rb!
   minitest (~> 5.10)
   rake-compiler (~> 1.0)
 

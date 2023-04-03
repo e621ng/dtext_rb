@@ -1,5 +1,5 @@
 require 'minitest/autorun'
-require 'dtext/dtext'
+require 'dtext'
 
 class DTextTest < Minitest::Test
   def assert_parse_id_link(class_name, url, input, display: input)

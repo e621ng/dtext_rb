@@ -1,58 +1,88 @@
 #ifndef DTEXT_H
 #define DTEXT_H
 
-#include <glib.h>
-#include <stdbool.h>
+#include <string>
+#include <vector>
+#include <stdexcept>
 
-#ifndef DEBUG
-#undef g_debug
-#define g_debug(...)
-#endif
+typedef enum element_t {
+  DSTACK_EMPTY = 0,
+  BLOCK_P,
+  BLOCK_QUOTE,
+  BLOCK_SECTION,
+  BLOCK_SPOILER,
+  BLOCK_CODE,
+  BLOCK_TABLE,
+  BLOCK_THEAD,
+  BLOCK_TBODY,
+  BLOCK_UL,
+  BLOCK_LI,
+  BLOCK_TR,
+  BLOCK_TH,
+  BLOCK_TD,
+  BLOCK_H1,
+  BLOCK_H2,
+  BLOCK_H3,
+  BLOCK_H4,
+  BLOCK_H5,
+  BLOCK_H6,
+  INLINE_B,
+  INLINE_I,
+  INLINE_U,
+  INLINE_S,
+  INLINE_SUP,
+  INLINE_SUB,
+  INLINE_COLOR,
+  INLINE_SPOILER,
+} element_t;
 
-#define DTEXT_PARSE_ERROR dtext_parse_error_quark()
-#define DTEXT_PARSE_ERROR_FAILED 0
-#define DTEXT_PARSE_ERROR_DEPTH_EXCEEDED 1
-#define DTEXT_PARSE_ERROR_INVALID_UTF8 2
+class DTextError : public std::runtime_error {
+  using std::runtime_error::runtime_error;
+};
 
-typedef struct StateMachine {
+struct DTextOptions {
+  bool f_inline = false;
+  bool allow_color = false;
+  int max_thumbs = 25;
+  std::string base_url;
+};
+
+struct DTextResult {
+  std::string dtext;
+  std::vector<long> posts;
+};
+
+class StateMachine {
+public:
+  static DTextResult parse_dtext(const std::string_view dtext, DTextOptions options);
+  static std::string parse_basic_inline(const std::string_view dtext);
+
+  DTextOptions options;
+
   size_t top;
   int cs;
-  int act;
-  const char * p;
-  const char * pb;
-  const char * pe;
-  const char * eof;
-  const char * ts;
-  const char * te;
+  int act = 0;
+  const char * p = NULL;
+  const char * pb = NULL;
+  const char * pe = NULL;
+  const char * eof = NULL;
+  const char * ts = NULL;
+  const char * te = NULL;
+  const char * a1 = NULL;
+  const char * a2 = NULL;
+  const char * b1 = NULL;
+  const char * b2 = NULL;
 
-  const char * a1;
-  const char * a2;
-  const char * b1;
-  const char * b2;
-  bool f_inline;
-  bool f_strip;
-  bool f_mentions;
-  bool list_mode;
-  bool header_mode;
-  GString * output;
-  GArray * stack;
-  GQueue * dstack;
-  GError * error;
-  GArray * posts;
-  int list_nest;
-  int d;
-  int b;
-  int quote;
-  int thumbnails_left;
-  bool allow_color;
-} StateMachine;
+  bool header_mode = false;
 
-StateMachine* init_machine(const char * src, size_t len, bool f_strip, bool f_inline, bool f_mentions, bool f_color, long f_max_thumbs);
-void free_machine(StateMachine * sm);
+  std::vector<long> posts;
+  std::string output;
+  std::vector<int> stack;
+  std::vector<element_t> dstack;
 
-gboolean parse_helper(StateMachine* sm);
-GString* parse_basic_inline(const char* dtext, const ssize_t length, const bool f_strip);
-
-GQuark dtext_parse_error_quark();
+private:
+  StateMachine(const std::string_view dtext, int initial_state, const DTextOptions options);
+  DTextResult parse();
+};
 
 #endif

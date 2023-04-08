@@ -1,9 +1,9 @@
-gmon.out
 tmp/
 pkg/
 *.bundle
 *.o
 *.so
-*.exe
-*.exe.*
 *~
+differences.yml
+dtext_reference.json.gz
+dtext.json.gz

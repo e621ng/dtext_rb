@@ -74,6 +74,7 @@ private:
   inline void append_post_search_link(const std::string_view tag, const std::string_view title);
   inline void append_wiki_link(const std::string_view tag, const std::string_view title);
   inline void append_id_link(const char * title, const char * id_name, const char * url);
+  inline void append_section(const std::string_view summary, bool initially_open);
   inline void append_closing_p();
 
   inline void dstack_close_leaf_blocks();

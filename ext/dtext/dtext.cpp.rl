@@ -605,33 +605,21 @@ main := |*
   };
 
   section_open space* => {
-    dstack_close_leaf_blocks();
-    dstack_open_block(BLOCK_SECTION, "<details>");
-    append_block("<summary></summary>");
+    append_section({}, false);
   };
 
   section_open_expanded space* => {
-    dstack_close_leaf_blocks();
-    dstack_open_block(BLOCK_SECTION, "<details open>");
-    append_block("<summary></summary>");
+    append_section({}, true);
   };
 
   section_open_aliased space* => {
     g_debug("block [section=]");
-    dstack_close_leaf_blocks();
-    dstack_open_block(BLOCK_SECTION, "<details>");
-    append_block("<summary>");
-    append_html_escaped({ a1, a2 });
-    append_block("</summary>");
+    append_section({ a1, a2 }, false);
   };
 
   section_open_aliased_expanded space* => {
     g_debug("block expanded [section=]");
-    dstack_close_leaf_blocks();
-    dstack_open_block(BLOCK_SECTION, "<details open>");
-    append_block("<summary>");
-    append_html_escaped({ a1, a2 });
-    append_block("</summary>");
+    append_section({ a1, a2 }, true);
   };
 
   '[table]'i => {
@@ -837,6 +825,20 @@ void StateMachine::append_post_search_link(const std::string_view tag, const std
   append("\">");
   append_html_escaped(title);
   append("</a>");
+}
+
+void StateMachine::append_section(const std::string_view summary, bool initially_open) {
+  dstack_close_leaf_blocks();
+  dstack_open_block(BLOCK_SECTION, "<details");
+  if (initially_open) {
+     append_block(" open");
+  }
+  append_block(">");
+  append_block("<summary>");
+  if (!summary.empty()) {
+    append_html_escaped(summary);
+  }
+  append_block("</summary>");
 }
 
 void StateMachine::append_closing_p() {

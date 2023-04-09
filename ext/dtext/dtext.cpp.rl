@@ -838,7 +838,7 @@ void StateMachine::append_section(const std::string_view summary, bool initially
   if (!summary.empty()) {
     append_html_escaped(summary);
   }
-  append_block("</summary>");
+  append_block("</summary><div>");
 }
 
 void StateMachine::append_closing_p() {
@@ -905,7 +905,7 @@ void StateMachine::dstack_rewind() {
     case INLINE_SPOILER: append("</span>"); break;
     case BLOCK_SPOILER: append_block("</div>"); break;
     case BLOCK_QUOTE: append_block("</blockquote>"); break;
-    case BLOCK_SECTION: append_block("</details>"); break;
+    case BLOCK_SECTION: append_block("</div></details>"); break;
     case BLOCK_CODE: append_block("</pre>"); break;
     case BLOCK_TD: append_block("</td>"); break;
     case BLOCK_TH: append_block("</th>"); break;

@@ -57,6 +57,44 @@ public:
   static DTextResult parse_dtext(const std::string_view dtext, DTextOptions options);
   static std::string parse_basic_inline(const std::string_view dtext);
 
+private:
+  StateMachine(const std::string_view dtext, int initial_state, const DTextOptions options);
+  DTextResult parse();
+
+  inline void append(const std::string_view c);
+  inline void append(const char c);
+  inline void append_block(const std::string_view s);
+  inline void append_block(const char s);
+  inline void append_html_escaped(char s);
+  inline void append_html_escaped(const std::string_view input);
+  inline void append_uri_escaped(const std::string_view uri_part, const char whitelist = '-');
+  inline void append_url(const char* url);
+  inline void append_unnamed_url(const std::string_view url);
+  inline void append_named_url(const std::string_view url, const std::string_view title);
+  inline void append_post_search_link(const std::string_view tag, const std::string_view title);
+  inline void append_wiki_link(const std::string_view tag, const std::string_view title);
+  inline void append_id_link(const char * title, const char * id_name, const char * url);
+  inline void append_closing_p();
+
+  inline void dstack_close_leaf_blocks();
+  inline void dstack_close_until(element_t element);
+  inline void dstack_close_all();
+  inline void dstack_close_list();
+  inline void dstack_close_inline(element_t type, const char * close_html);
+  inline bool dstack_close_block(element_t type, const char * close_html);
+  inline void dstack_close_before_block();
+
+  inline void dstack_open_block(element_t type, const char * html);
+  inline void dstack_open_list(int depth);
+  inline void dstack_open_inline(element_t type, const char * html);
+  inline bool dstack_is_open(element_t element);
+  inline void dstack_push(element_t element);
+  inline bool dstack_check(element_t expected_element);
+  inline void dstack_rewind();
+  inline int dstack_count(element_t element);
+  inline element_t dstack_peek();
+  inline element_t dstack_pop();
+
   DTextOptions options;
 
   size_t top;
@@ -79,10 +117,6 @@ public:
   std::string output;
   std::vector<int> stack;
   std::vector<element_t> dstack;
-
-private:
-  StateMachine(const std::string_view dtext, int initial_state, const DTextOptions options);
-  DTextResult parse();
 };
 
 #endif

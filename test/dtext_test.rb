@@ -123,6 +123,14 @@ test2[/ltable]
     assert_parse("<p><strong>[[</strong>tag<strong>]]</strong></p>", "[b][[[/b]tag[b]]][/b]")
   end
 
+  def test_artist_links
+    assert_parse("<p>a <a rel=\"nofollow\" class=\"dtext-link dtext-artist-link\" href=\"/artists/show_or_new?name=b\">b</a> c</p>", "a [[~b]] c")
+  end
+
+  def test_artist_links_aliased
+    assert_parse("<p><a rel=\"nofollow\" class=\"dtext-link dtext-artist-link\" href=\"/artists/show_or_new?name=artist_name\">Some Text</a></p>", "[[~artist name|Some Text]]")
+  end
+
   def test_spoilers
     assert_parse("<p>this is <span class=\"spoiler\">an inline spoiler</span>.</p>", "this is [spoiler]an inline spoiler[/spoiler].")
     assert_parse("<p>this is <span class=\"spoiler\">an inline spoiler</span>.</p>", "this is [SPOILERS]an inline spoiler[/SPOILERS].")

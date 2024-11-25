@@ -116,6 +116,9 @@ bracketed_textile_link = '"' nonquote+ >mark_a1 %mark_a2 '":[' (url | internal_u
 basic_wiki_link = '[[' (nonbracket nonpipebracket*) >mark_a1 %mark_a2 ']]';
 aliased_wiki_link = '[[' nonpipebracket+ >mark_a1 %mark_a2 '|' nonpipebracket+ >mark_b1 %mark_b2 ']]';
 
+basic_artist_link = '[[~' (nonbracket nonpipebracket*) >mark_a1 %mark_a2 ']]';
+aliased_artist_link = '[[~' nonpipebracket+ >mark_a1 %mark_a2 '|' nonpipebracket+ >mark_b1 %mark_b2 ']]';
+
 basic_post_search_link = '{{' (noncurly nonpipecurly*) >mark_a1 %mark_a2 '}}';
 aliased_post_search_link = '{{' nonpipecurly+ >mark_a1 %mark_a2 '|' nonpipecurly+ >mark_b1 %mark_b2 '}}';
 
@@ -251,12 +254,20 @@ inline := |*
     append_post_search_link({ a1, a2 }, { b1, b2 });
   };
 
+  basic_artist_link => {
+    append_show_or_new_link("artist", "artists", "name", { a1, a2 }, { a1, a2 });
+  };
+
+  aliased_artist_link => {
+    append_show_or_new_link("artist", "artists", "name", { a1, a2 }, { b1, b2 });
+  };
+
   basic_wiki_link => {
-    append_wiki_link({ a1, a2 }, { a1, a2 });
+    append_show_or_new_link("wiki", "wiki_pages", "title", { a1, a2 }, { a1, a2 });
   };
 
   aliased_wiki_link => {
-    append_wiki_link({ a1, a2 }, { b1, b2 });
+    append_show_or_new_link("wiki", "wiki_pages", "title", { a1, a2 }, { b1, b2 });
   };
 
   basic_textile_link => {
@@ -796,18 +807,23 @@ void StateMachine::append_named_url(const std::string_view url, const std::strin
   append("</a>");
 }
 
-void StateMachine::append_wiki_link(const std::string_view tag, const std::string_view title) {
+void StateMachine::append_show_or_new_link(const char * id_name, const char * path, const char * query, const std::string_view tag, const std::string_view title) {
   std::string normalized_tag = std::string(tag);
   std::transform(normalized_tag.begin(), normalized_tag.end(), normalized_tag.begin(), [](unsigned char c) { return c == ' ' ? '_' : std::tolower(c); });
 
   // FIXME: Take the anchor as an argument here
   if (tag[0] == '#') {
-    append("<a rel=\"nofollow\" class=\"dtext-link dtext-wiki-link\" href=\"#");
+    append("<a rel=\"nofollow\" class=\"dtext-link dtext-");
+    append(id_name);
+    append("-link\" href=\"#");
     append_uri_escaped(normalized_tag.substr(1, normalized_tag.size() - 1));
     append("\">");
   } else {
-    append("<a rel=\"nofollow\" class=\"dtext-link dtext-wiki-link\" href=\"");
-    append_url("/wiki_pages/show_or_new?title=");
+    append("<a rel=\"nofollow\" class=\"dtext-link dtext-");
+    append(id_name);
+    append("-link\" href=\"");
+    std::string url = std::string("/") + path + "/show_or_new?" + query + "=";
+    append_url(url.c_str());
     append_uri_escaped(normalized_tag, '#');
     append("\">");
   }

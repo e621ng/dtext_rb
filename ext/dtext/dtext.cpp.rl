@@ -191,7 +191,7 @@ inline := |*
   };
 
   '`' => {
-    append("<span class=\"inline-code\">");
+    dstack_open_inline(INLINE_CODE, "<span class=\"inline-code\">");
     fcall inline_code;
   };
 
@@ -488,7 +488,7 @@ inline_code := |*
   };
 
   '`' => {
-    append("</span>");
+    dstack_close_inline(INLINE_CODE, "</span>");
     fret;
   };
 
@@ -908,6 +908,7 @@ void StateMachine::dstack_rewind() {
     case INLINE_SUB: append("</sub>"); break;
     case INLINE_SUP: append("</sup>"); break;
     case INLINE_COLOR: append("</span>"); break;
+    case INLINE_CODE: append("</span>"); break;
 
     case BLOCK_TABLE: append_block("</table>"); break;
     case BLOCK_THEAD: append_block("</thead>"); break;

@@ -173,10 +173,6 @@ test2[/ltable]
     # assert_parse('<h1>test</h1>', "[color=lime]h1.test[/color]")
   end
 
-  def test_nested_inline_code
-    assert_parse(%{<p><span class="inline-code">`what`</span></p>}, "`\\`what\\``")
-  end
-
   def test_paragraphs
     assert_parse("<p>abc</p>", "abc")
   end
@@ -244,7 +240,7 @@ test2[/ltable]
     assert_parse('<blockquote><p><strong>foo</strong></p></blockquote>', "[quote][b]foo[/quote]")
     assert_parse('<blockquote><blockquote><p>foo</p></blockquote></blockquote>', "[quote][quote]foo[/quote]")
     assert_parse('<blockquote><div class="spoiler"><p>foo</p></div></blockquote>', "[quote][spoiler]foo[/quote]")
-    assert_parse('<blockquote><pre>foo[/quote]</pre></blockquote>', "[quote][code]foo[/quote]")
+    # code-related case moved to code_test.rb
     assert_parse('<blockquote><details><summary></summary><div><p>foo</p></div></details></blockquote>', "[quote][section]foo[/quote]")
     assert_parse('<blockquote><table class="striped"><td>foo</td></table></blockquote>', "[quote][table][td]foo[/quote]")
     assert_parse('<blockquote><ul><li>foo</li></ul></blockquote>', "[quote]* foo[/quote]")
@@ -265,15 +261,6 @@ test2[/ltable]
 
   def test_quote_blocks_nested_expand
     assert_parse("<blockquote><p>a</p><details><summary></summary><div><p>b</p></div></details><p>c</p></blockquote>", "[quote]\na\n[section]\nb\n[/section]\nc\n[/quote]")
-  end
-
-  def test_code
-    assert_parse("<pre>for (i=0; i&lt;5; ++i) {\n  printf(1);\n}\n\nexit(1);</pre>", "[code]for (i=0; i<5; ++i) {\n  printf(1);\n}\n\nexit(1);")
-
-    assert_parse("<p>inline</p><pre>[/i]\n</pre>", "inline\n\n[code]\n[/i]\n[/code]")
-    assert_parse('<p>inline</p><pre>[/i]</pre>', "inline\n\n[code][/i][/code]")
-    assert_parse("<p><em>inline</em></p><pre>[/i]\n</pre>", "[i]inline\n\n[code]\n[/i]\n[/code]")
-    assert_parse('<p><em>inline</em></p><pre>[/i]</pre>', "[i]inline\n\n[code][/i][/code]")
   end
 
   def test_urls
@@ -416,7 +403,6 @@ test2[/ltable]
 
   def test_inline_tags
     assert_parse('<p><a rel="nofollow" class="dtext-link dtext-post-search-link" href="/posts?tags=tag">tag</a></p>', "{{tag}}")
-    assert_parse('<p>hello </p><pre>tag</pre>', "hello [code]tag[/code]")
   end
 
   def test_inline_tags_conjunction
@@ -542,10 +528,6 @@ test2[/ltable]
 
     assert_parse("<p>inline <em>foo </em></p><details><summary>title</summary><div><p>blah blah</p></div></details>", "inline [i]foo [section=title]blah blah[/section]")
     assert_parse('<p>inline <span class="spoiler">foo </span></p><details><summary>title</summary><div><p>blah blah</p></div></details>', "inline [spoiler]foo [section=title]blah blah[/section]")
-  end
-
-  def test_expand_with_nested_code
-    assert_parse("<details><summary></summary><div><pre>hello\n</pre></div></details>", "[section]\n[code]\nhello\n[/code]\n[/section]")
   end
 
   def test_expand_with_nested_list

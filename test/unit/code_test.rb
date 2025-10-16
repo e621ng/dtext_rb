@@ -20,7 +20,7 @@ class DTextCodeTest < Minitest::Test
   end
 
   def test_inline_code_spaced
-    assert_parse("<p><span class=\"inline-code\">x</span> <span class=\"inline-code\">y</span></p>", "`x` `y`");
+    assert_parse("<p><span class=\"inline-code\">x</span> <span class=\"inline-code\">y</span></p>", "`x` `y`")
   end
 
   def test_inline_code_tag

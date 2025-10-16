@@ -34,6 +34,7 @@ typedef enum element_t {
   INLINE_SUB,
   INLINE_COLOR,
   INLINE_SPOILER,
+  INLINE_CODE,
 } element_t;
 
 class DTextError : public std::runtime_error {

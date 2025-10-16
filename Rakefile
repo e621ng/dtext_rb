@@ -34,7 +34,7 @@ end
 
 task test: :compile do
   Bundler.with_unbundled_env do
-    Dir["test/unit/*_test.rb"].each do |test_file|
+    Dir["test/unit/*_test.rb"].sort.each do |test_file|
       run_dtext test_file
     end
   end

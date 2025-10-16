@@ -1,0 +1,108 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Docker: Build",
+      "type": "shell",
+      "command": "docker-compose",
+      "args": [
+        "build",
+      ],
+      "group": "build"
+    },
+    {
+      "label": "DText: Compile",
+      "type": "shell",
+      "command": "docker-compose",
+      "args": [
+        "run",
+        "--rm",
+        "rake",
+        "compile"
+      ],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "detail": "Compile the DText parser",
+      "problemMatcher": []
+    },
+    {
+      "label": "DText: Test",
+      "type": "shell",
+      "command": "docker-compose",
+      "args": [
+        "run",
+        "--rm",
+        "rake",
+        "test"
+      ],
+      "group": "test",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "detail": "Run DText parser tests",
+      "problemMatcher": []
+    },
+    {
+      "label": "Release: Interactive",
+      "type": "shell",
+      "command": "./scripts/release.sh",
+      "args": [
+        "${input:releaseType}"
+      ],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "new",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "detail": "Interactive release with selectable version type and dry run option",
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "releaseType",
+      "description": "Select release type",
+      "type": "pickString",
+      "options": [
+        {
+          "label": "Patch (1.11.0 → 1.11.1)",
+          "value": "patch"
+        },
+        {
+          "label": "Minor (1.11.0 → 1.12.0)",
+          "value": "minor"
+        },
+        {
+          "label": "Major (1.11.0 → 2.0.0)",
+          "value": "major"
+        }
+      ],
+      "default": "patch"
+    }
+  ]
+}

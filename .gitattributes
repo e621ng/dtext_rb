@@ -1,0 +1,6 @@
+# Mark generated files to reduce diff noise
+ext/dtext/dtext.cpp linguist-generated=true
+ext/dtext/dtext.cpp diff=cpp
+
+# Collapse generated file diffs in GitHub
+ext/dtext/dtext.cpp -diff

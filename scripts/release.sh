@@ -12,7 +12,7 @@
 #   ./scripts/release.sh major --dry-run    # Dry run of major version bump
 #   ./scripts/release.sh --dry-run          # Dry run of patch version bump
 
-set -e  # Exit on any error
+set -Eeuo pipefail  # Exit on error, unset var, pipeline fail, inherit ERR trap
 
 # Parse command line arguments
 BUMP_TYPE="patch"

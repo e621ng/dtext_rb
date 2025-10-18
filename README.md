@@ -7,9 +7,9 @@ This gem uses the [Ragel state machine compiler](https://github.com/adrian-thurs
 
 If you wish to test your changes in a local instance of [e621ng](https://github.com/e621ng/e621ng), please refer to the "Local DText gem" section of that repo's README file.
 
-1. Build the Docker container: `docker-compose build`
-2. Compile the parser: `docker-compose run --rm rake compile`
-3. Run tests: `docker-compose run --rm rake test`
+1. Build the Docker container: `docker compose build`
+2. Compile the parser: `docker compose run --rm rake compile`
+3. Run tests: `docker compose run --rm rake test`
 
 ### Important: Do not commit `dtext.cpp` in pull requests
 
@@ -18,13 +18,13 @@ It will be regenerated during the official release process.
 
 ### Creating a new release
 
-Use the release script to properly bump the version number and handle the compile the artifacts.
+Use the release script to properly bump the version number and compile the artifacts.
 
 ```bash
 ./scripts/release.sh [patch|minor|major]
 ```
 
-Don't forget to update e621ng's gemfile to include the new tag name.
+Don't forget to update e621ng's Gemfile to include the new tag name.
 
 ### Ragel
 

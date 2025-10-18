@@ -1,0 +1,31 @@
+name: Checks
+
+on:
+  push:
+    branches:
+      - master
+      - build-*
+  pull_request:
+    branches:
+      - master
+      - build-*
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build Docker image
+      run: docker-compose build
+
+    - name: Compile DText
+      run: docker-compose run --rm rake compile
+
+    - name: Run tests
+      run: docker-compose run --rm rake test
